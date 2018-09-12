@@ -1,0 +1,70 @@
+#include <cstring> // memset()
+
+#include <buffer_handle/number.hpp> // integral_number() details::digits()
+#include <buffer_handle/string.hpp> // string()
+#include <buffer_handle/token.hpp> // dot() slash()
+
+namespace buffer_handle_http_header
+{
+  template<config Config, action Action, typename Number, class Itoa>
+  char * version(char * buffer, Number major, Number minor, std::size_t & max_length, const Itoa & itoa /* = Itoa() */)
+  {
+    using namespace buffer_handle;
+
+    buffer = string<config::static_, Action>(buffer, "HTTP", 4);
+    buffer = slash<config::static_, Action>(buffer);
+
+    if(Config == config::static_)
+      {
+	std::size_t dummy;
+
+	buffer = integral_number<Config, align::left, ' ', Action, Itoa, Number, std::size_t>(buffer, major, dummy, itoa);
+	buffer = dot<Config, Action>(buffer);
+	buffer = integral_number<Config, align::left, ' ', Action, Itoa, Number, std::size_t>(buffer, minor, dummy, itoa);
+      }
+    else if(Config == config::dynamic)
+      {
+	switch(Action)
+	  {
+	  case action::size:
+	    {
+	      return buffer + details::digits<Number>(major) + (std::size_t)dot<config::static_, action::size>(nullptr) + details::digits<Number>(minor);
+	    }
+	  case action::prepare:
+	    {
+	      max_length = details::digits<Number>(major) + (std::size_t)dot<config::static_, action::size>(nullptr) + details::digits<Number>(minor);
+	    }
+	  case action::write:
+	  case action::reset:
+	    {
+	      char * local = buffer;
+
+	      local = itoa.template fwd<Number>(buffer, major);
+	      local = dot<config::static_, action::prepare>(local);
+	      local = itoa.template fwd<Number>(local, minor);
+
+	      std::memset(local, ' ', max_length - (local - buffer));
+	    }
+	  }
+
+	buffer += max_length;
+      }
+
+    return buffer;
+  }
+
+  template<config Config, typename Number> inline
+  version_t<Config, Number>::version_t(Number major /* = 1 */, Number minor /* = 1 */) :
+    max_length(0)
+  {
+    this->major = major;
+    this->minor = minor;
+  }
+
+  template<config Config, typename Number>
+  template<action Action, class Itoa> inline
+  char * version_t<Config, Number>::handle(char * buffer, const Itoa & itoa /* = Itoa() */)
+  {
+    return version<Config, Action, Number, Itoa>(buffer, this->major, this->minor, this->max_length, itoa());
+  }
+};

@@ -3,7 +3,7 @@
 
 #include <cstring> // strlen()
 
-#include <buffer_handle_http_header/type.hpp> // action align case config
+#include <buffer_handle_http_header/type.hpp> // action config
 
 namespace buffer_handle_http_header
 {

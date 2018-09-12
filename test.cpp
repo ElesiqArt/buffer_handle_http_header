@@ -5,6 +5,7 @@
 #include <buffer_handle_http_header/type.hpp>
 
 #include <buffer_handle_http_header/status_code.hpp>
+#include <buffer_handle_http_header/version.hpp>
 
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
@@ -68,6 +69,82 @@ SCENARIO("Status code", "[status_code]")
 
 			REQUIRE(end - begin == size);
 			REQUIRE(std::string(begin, end) == std::to_string(client_error::requested_range_not_satisfiable::value) + " " + std::string(rfc2616_t::max_reason_length - std::strlen(client_error::requested_range_not_satisfiable::reason), ' ') + client_error::requested_range_not_satisfiable::reason);
+		      }
+		  }
+	      }
+	  }
+	}
+    }
+}
+
+SCENARIO("Version", "[version]")
+{
+  buffer_handle::adapter::itoa::to_string_t itoa;
+  std::size_t max_length = 0;
+
+  WHEN("Static")
+    {
+      std::size_t size = (std::size_t)version<config::static_, action::size>(nullptr, 1, 1, max_length, itoa);
+
+      REQUIRE(size == 8);
+
+      GIVEN("Size")
+	{
+	  GIVEN_A_BUFFER(size)
+	    {
+	      THEN("Prepare")
+		{
+		  end = version<config::static_, action::prepare>(begin, 1, 1, max_length, itoa);
+
+		  REQUIRE(end - begin == size);
+		  REQUIRE(std::string(begin, end) == "HTTP/1.1");
+		}
+	    }
+	}
+    }
+
+  WHEN("Dynamic")
+    {
+      std::size_t size = (std::size_t)version<config::dynamic, action::size>(nullptr, 10, 10, max_length, itoa);
+
+      REQUIRE(size == 10);
+
+      GIVEN("Size")
+	{
+	  GIVEN_A_BUFFER(size)
+	  {
+	    THEN("Prepare")
+	      {
+		end = version<config::dynamic, action::prepare>(begin, 99, 34, max_length, itoa);
+
+		REQUIRE(end - begin == size);
+		REQUIRE(max_length == 5);
+		REQUIRE(std::string(begin, end) == "HTTP/99.34");
+
+		THEN("Write")
+		  {
+		    end = version<config::dynamic, action::write>(begin, 13, 2, max_length, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(max_length == 5);
+		    REQUIRE(std::string(begin, end) == "HTTP/13.2 ");
+
+		    THEN("Reset")
+		      {
+			end = version<config::dynamic, action::reset>(begin, 2, 12, max_length, itoa);
+
+			REQUIRE(end - begin == size);
+			REQUIRE(max_length == 5);
+			REQUIRE(std::string(begin, end) == "HTTP/2.12 ");
+
+			THEN("Write")
+			  {
+			    end = version<config::dynamic, action::write>(begin, 2, 0, max_length, itoa);
+
+			    REQUIRE(end - begin == size);
+			    REQUIRE(max_length == 5);
+			    REQUIRE(std::string(begin, end) == "HTTP/2.0  ");
+			  }
 		      }
 		  }
 	      }
