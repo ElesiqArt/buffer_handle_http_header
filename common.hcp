@@ -45,4 +45,26 @@ namespace buffer_handle_http_header
 
     return buffer;
   }
+
+  template<config Config>
+  template<action Action> inline
+  char * string_field_t<Config>::handle(char * buffer, const char * field, const char * value, std::size_t length)
+  {
+    buffer = field_<Action>(buffer, field, std::strlen(field));
+
+    buffer = buffer_handle::string_t<Config, align::right, ' '>::template handle<Action>(buffer, value, length);
+
+    return buffer;
+  }
+
+  template<config Config>
+  template<action Action> inline
+  char * long_string_field_t<Config>::handle(char * buffer, const char * field, const char * value, std::size_t length)
+  {
+    buffer = field_<Action>(buffer, field, std::strlen(field));
+
+    buffer = buffer_handle::long_string_t<Config, align::right, ' '>::template handle<Action>(buffer, value, length);
+
+    return buffer;
+  }
 };

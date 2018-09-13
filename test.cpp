@@ -9,6 +9,9 @@
 #include <buffer_handle_http_header/status_line.hpp>
 #include <buffer_handle_http_header/version.hpp>
 
+#include <buffer_handle_http_header/content_length.hpp>
+#include <buffer_handle_http_header/content_location.hpp>
+
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
 using namespace buffer_handle_http_header;
@@ -168,9 +171,12 @@ SCENARIO("Status line", "[status-line]")
 	{
 	  GIVEN_A_BUFFER(size)
 	  {
-	    end = status_line<config::static_, status_code::rfc2616_t, action::prepare>(begin, 1, 1, status_code::success::ok::value, max_length, itoa);
+	    THEN("Prepare")
+	      {
+		end = status_line<config::static_, status_code::rfc2616_t, action::prepare>(begin, 1, 1, status_code::success::ok::value, max_length, itoa);
 
-	    REQUIRE(std::string(begin, end) == "HTTP/1.1 200 OK");
+		REQUIRE(std::string(begin, end) == "HTTP/1.1 200 OK");
+	      }
 	  }
 	}
     }
@@ -185,9 +191,12 @@ SCENARIO("Status line", "[status-line]")
 	{
 	  GIVEN_A_BUFFER(size)
 	  {
-	    end = status_line.handle<action::prepare>(begin, 1, 1, status_code::success::ok::value, itoa);
+	    THEN("Prepare")
+	      {
+		end = status_line.handle<action::prepare>(begin, 1, 1, status_code::success::ok::value, itoa);
 
-	    REQUIRE(std::string(begin, end) == "HTTP/1.1 200                              OK");
+		REQUIRE(std::string(begin, end) == "HTTP/1.1 200                              OK");
+	      }
 	  }
 	}
     }
@@ -209,10 +218,13 @@ SCENARIO("Common", "[common]")
 	    {
 	      GIVEN_A_BUFFER(size)
 	      {
-		end = number.handle<action::prepare>(begin, "Field", 42, itoa);
+		THEN("Prepapre")
+		  {
+		    end = number.handle<action::prepare>(begin, "Field", 42, itoa);
 
-		REQUIRE(end - begin == size);
-		REQUIRE(std::string(begin, end) == "Field: 42");
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Field: 42");
+		  }
 	      }
 	    }
 	}
@@ -227,17 +239,76 @@ SCENARIO("Common", "[common]")
 	    {
 	      GIVEN_A_BUFFER(size)
 	      {
-		end = number.handle<action::prepare>(begin, "Field", 42, itoa);
-
-		REQUIRE(end - begin == size);
-		REQUIRE(std::string(begin, end) == "Field: 42");
-
-		THEN("Write")
+		THEN("Prepare")
 		  {
-		    end = number.handle<action::write>(begin, "Field", 9, itoa);
+		    end = number.handle<action::prepare>(begin, "Field", 42, itoa);
 
 		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == "Field:  9");
+		    REQUIRE(std::string(begin, end) == "Field: 42");
+
+		    THEN("Write")
+		      {
+			end = number.handle<action::write>(begin, "Field", 9, itoa);
+
+			REQUIRE(end - begin == size);
+			REQUIRE(std::string(begin, end) == "Field:  9");
+		      }
+		  }
+	      }
+	    }
+	}
+    }
+
+  WHEN("String field")
+    {
+      const char * long_value = "long value";
+      const char * value = "value";
+
+      WHEN("Static")
+	{
+	  string_field_t<config::static_> string;
+
+	  std::size_t size = (std::size_t)string.handle<action::size>(nullptr, "Field", nullptr, std::strlen(long_value));
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = string.handle<action::prepare>(begin, "Field", long_value, std::strlen(long_value));
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == std::string("Field: ") + long_value);
+		  }
+	      }
+	    }
+	}
+
+      WHEN("Dynamic")
+	{
+	  string_field_t<config::dynamic> string;
+
+	  std::size_t size = (std::size_t)string.handle<action::size>(nullptr, "Field", nullptr, std::strlen(long_value));
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = string.handle<action::prepare>(begin, "Field", long_value, std::strlen(long_value));
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == std::string("Field: ") + long_value);
+
+		    THEN("Write")
+		      {
+			end = string.handle<action::write>(begin, "Field", value, std::strlen(value));
+
+			REQUIRE(end - begin == size);
+			REQUIRE(std::string(begin, end) == std::string("Field: ") + std::string(std::strlen(long_value) - std::strlen(value), ' ') + value);
+		      }
 		  }
 	      }
 	    }

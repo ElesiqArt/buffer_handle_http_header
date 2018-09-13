@@ -3,7 +3,8 @@
 
 #include <buffer_handle_http_header/type.hpp> // action align config
 
-#include <buffer_handle/number.hpp> // integral_number_t
+#include <buffer_handle/number.hpp> // integral_number_t long_integral_number_t
+#include <buffer_handle/string.hpp> // string_t long_string_t
 
 namespace buffer_handle_http_header
 {
@@ -25,6 +26,20 @@ namespace buffer_handle_http_header
   {
     template<action Action, class Itoa>
     char * handle(char * buffer, const char * field, I value, const Itoa & itoa = Itoa());
+  };
+
+  template<config Config>
+  struct string_field_t : buffer_handle::string_t<Config, align::right, ' '>
+  {
+    template<action Action>
+    char * handle(char * bufer, const char * field, const char * value, std::size_t length);
+  };
+
+  template<config Config>
+  struct long_string_field_t : buffer_handle::long_string_t<Config, align::right, ' '>
+  {
+    template<action Action>
+    char * handle(char * bufer, const char * field, const char * value, std::size_t length);
   };
 };
 
