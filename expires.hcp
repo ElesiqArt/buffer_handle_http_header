@@ -1,0 +1,18 @@
+namespace buffer_handle_http_header
+{
+  template<config Config, action Action,
+	   typename Weekday, typename Day, typename Month, typename Year,
+	   typename Hours, typename Minutes, typename Seconds> inline
+  char * expires(char * buffer, Weekday weekday, Day day, Month month, Year year,
+		 Hours hours, Minutes minutes, Seconds seconds)
+  {
+    return date<Config, Action, Weekday, Day, Month, Year, Hours, Minutes, Seconds>
+      (buffer, "Expires", weekday, day, month, year, hours, minutes, seconds);
+  }
+
+  template<config Config, action Action> inline
+  char * expires(char * buffer, std::tm value)
+  {
+    return date<Config, Action>(buffer, "Expires", value);
+  }
+};

@@ -11,6 +11,7 @@
 
 #include <buffer_handle_http_header/content_length.hpp>
 #include <buffer_handle_http_header/content_location.hpp>
+#include <buffer_handle_http_header/expires.hpp>
 
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
@@ -204,6 +205,9 @@ SCENARIO("Status line", "[status-line]")
 
 SCENARIO("Common", "[common]")
 {
+  const char * field = "Field";
+  const std::string field_ = "Field: ";
+
   WHEN("Integral number field")
     {
       buffer_handle::adapter::itoa::to_string_t itoa;
@@ -212,7 +216,7 @@ SCENARIO("Common", "[common]")
 	{
 	  integral_number_field_t<config::static_, uint8_t> number;
 
-	  std::size_t size = (std::size_t)number.handle<action::size>(nullptr, "Field", 42, itoa);
+	  std::size_t size = (std::size_t)number.handle<action::size>(nullptr, field, 42, itoa);
 
 	  GIVEN("Size")
 	    {
@@ -220,10 +224,10 @@ SCENARIO("Common", "[common]")
 	      {
 		THEN("Prepapre")
 		  {
-		    end = number.handle<action::prepare>(begin, "Field", 42, itoa);
+		    end = number.handle<action::prepare>(begin, field, 42, itoa);
 
 		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == "Field: 42");
+		    REQUIRE(std::string(begin, end) == field_ + "42");
 		  }
 	      }
 	    }
@@ -233,7 +237,7 @@ SCENARIO("Common", "[common]")
 	{
 	  integral_number_field_t<config::dynamic, uint8_t> number;
 
-	  std::size_t size = (std::size_t)number.handle<action::size>(nullptr, "Field", 42, itoa);
+	  std::size_t size = (std::size_t)number.handle<action::size>(nullptr, field, 42, itoa);
 
 	  GIVEN("Size")
 	    {
@@ -241,17 +245,17 @@ SCENARIO("Common", "[common]")
 	      {
 		THEN("Prepare")
 		  {
-		    end = number.handle<action::prepare>(begin, "Field", 42, itoa);
+		    end = number.handle<action::prepare>(begin, field, 42, itoa);
 
 		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == "Field: 42");
+		    REQUIRE(std::string(begin, end) == field_ + "42");
 
 		    THEN("Write")
 		      {
 			end = number.handle<action::write>(begin, "Field", 9, itoa);
 
 			REQUIRE(end - begin == size);
-			REQUIRE(std::string(begin, end) == "Field:  9");
+			REQUIRE(std::string(begin, end) == field_ + " 9");
 		      }
 		  }
 	      }
@@ -268,7 +272,7 @@ SCENARIO("Common", "[common]")
 	{
 	  string_field_t<config::static_> string;
 
-	  std::size_t size = (std::size_t)string.handle<action::size>(nullptr, "Field", nullptr, std::strlen(long_value));
+	  std::size_t size = (std::size_t)string.handle<action::size>(nullptr, field, nullptr, std::strlen(long_value));
 
 	  GIVEN("Size")
 	    {
@@ -276,10 +280,10 @@ SCENARIO("Common", "[common]")
 	      {
 		THEN("Prepare")
 		  {
-		    end = string.handle<action::prepare>(begin, "Field", long_value, std::strlen(long_value));
+		    end = string.handle<action::prepare>(begin, field, long_value, std::strlen(long_value));
 
 		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == std::string("Field: ") + long_value);
+		    REQUIRE(std::string(begin, end) == field_ + long_value);
 		  }
 	      }
 	    }
@@ -289,7 +293,7 @@ SCENARIO("Common", "[common]")
 	{
 	  string_field_t<config::dynamic> string;
 
-	  std::size_t size = (std::size_t)string.handle<action::size>(nullptr, "Field", nullptr, std::strlen(long_value));
+	  std::size_t size = (std::size_t)string.handle<action::size>(nullptr, field, nullptr, std::strlen(long_value));
 
 	  GIVEN("Size")
 	    {
@@ -297,18 +301,69 @@ SCENARIO("Common", "[common]")
 	      {
 		THEN("Prepare")
 		  {
-		    end = string.handle<action::prepare>(begin, "Field", long_value, std::strlen(long_value));
+		    end = string.handle<action::prepare>(begin, field, long_value, std::strlen(long_value));
 
 		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == std::string("Field: ") + long_value);
+		    REQUIRE(std::string(begin, end) == field_ + long_value);
 
 		    THEN("Write")
 		      {
-			end = string.handle<action::write>(begin, "Field", value, std::strlen(value));
+			end = string.handle<action::write>(begin, field, value, std::strlen(value));
 
 			REQUIRE(end - begin == size);
-			REQUIRE(std::string(begin, end) == std::string("Field: ") + std::string(std::strlen(long_value) - std::strlen(value), ' ') + value);
+			REQUIRE(std::string(begin, end) == field_ + std::string(std::strlen(long_value) - std::strlen(value), ' ') + value);
 		      }
+		  }
+	      }
+	    }
+	}
+    }
+
+  WHEN("Date")
+    {
+      WHEN("Static")
+	{
+	  std::size_t size = (std::size_t)date<config::static_, action::size>(nullptr, field, 1, 1, 1, 1, 1, 1, 1);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = date<config::static_, action::prepare>(begin, field, 1, 1, 1, 1901, 1, 1, 1);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == field_ + "Mon, 01 Jan 1901 01:01:01 GMT");
+		  }
+	      }
+	    }
+	}
+
+      WHEN("Dynamic")
+	{
+	  std::tm time;
+
+	  time.tm_wday = 1;
+	  time.tm_mday = 1;
+	  time.tm_mon = 0;
+	  time.tm_year = 1;
+	  time.tm_hour = 1;
+	  time.tm_min = 1;
+	  time.tm_sec = 1;
+
+	  std::size_t size = (std::size_t)date<config::dynamic, action::size>(nullptr, field, time);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = date<config::dynamic, action::prepare>(begin, field, time);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == field_ + "Mon, 01 Jan 1901 01:01:01 GMT");
 		  }
 	      }
 	    }

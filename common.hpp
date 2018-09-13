@@ -3,6 +3,7 @@
 
 #include <buffer_handle_http_header/type.hpp> // action align config
 
+#include <buffer_handle/date.hpp> // rfc1123::date
 #include <buffer_handle/number.hpp> // integral_number_t long_integral_number_t
 #include <buffer_handle/string.hpp> // string_t long_string_t
 
@@ -41,6 +42,16 @@ namespace buffer_handle_http_header
     template<action Action>
     char * handle(char * bufer, const char * field, const char * value, std::size_t length);
   };
+
+  template<config Config, action Action,
+	     typename Weekday, typename Day, typename Month, typename Year,
+	     typename Hours, typename Minutes, typename Seconds>
+  char * date(char * buffer, const char * field,
+	      Weekday weekday, Day day, Month month, Year year,
+	      Hours hours, Minutes minutes, Seconds seconds);
+
+  template<config Config, action Action>
+  char * handle(char * buffer, const char * field, std::tm value);
 };
 
 #include <buffer_handle_http_header/common.hcp>
