@@ -1,0 +1,48 @@
+#include <cstring> // strlen()
+
+#include <buffer_handle/string.hpp> // string()
+#include <buffer_handle/token.hpp> // carriage_return() new_line() colon() space()
+
+namespace buffer_handle_http_header
+{
+  template<config Config, action Action> inline
+  char * crlf(char * buffer)
+  {
+    buffer = buffer_handle::carriage_return<Config, Action>(buffer);
+    buffer = buffer_handle::new_line<Config, Action>(buffer);
+
+    return buffer;
+  }
+
+  template<action Action>
+  char * field_(char * buffer, const char * value, std::size_t length)
+  {
+    buffer = buffer_handle::string<config::static_, Action>(buffer, value, length);
+    buffer = buffer_handle::colon<config::static_, Action>(buffer);
+    buffer = buffer_handle::space<config::static_, Action>(buffer);
+
+    return buffer;
+  }
+
+  template<config Config, typename I, typename MaxDigits>
+  template<action Action, class Itoa> inline
+  char * integral_number_field_t<Config, I, MaxDigits>::handle(char * buffer, const char * field, I value, const Itoa & itoa /* = Itoa() */)
+  {
+    buffer = field_<Action>(buffer, field, std::strlen(field));
+
+    buffer = buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits>::template handle<Action, Itoa>(buffer, value, itoa);
+
+    return buffer;
+  }
+
+  template<config Config, typename I, typename MaxDigits>
+  template<action Action, class Itoa> inline
+  char * long_integral_number_field_t<Config, I, MaxDigits>::handle(char * buffer, const char * field, I value, const Itoa & itoa /* = Itoa() */)
+  {
+    buffer = field_<Config, Action>(buffer, field, std::strlen(field));
+
+    buffer = buffer_handle::long_integral_number_t<Config, align::right, ' ', I, MaxDigits>::template handle<Action, Itoa>(buffer, value, itoa);
+
+    return buffer;
+  }
+};

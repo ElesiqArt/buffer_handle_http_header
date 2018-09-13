@@ -4,9 +4,10 @@
 
 #include <buffer_handle_http_header/type.hpp>
 
+#include <buffer_handle_http_header/common.hpp>
 #include <buffer_handle_http_header/status_code.hpp>
-#include <buffer_handle_http_header/version.hpp>
 #include <buffer_handle_http_header/status_line.hpp>
+#include <buffer_handle_http_header/version.hpp>
 
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
@@ -188,6 +189,58 @@ SCENARIO("Status line", "[status-line]")
 
 	    REQUIRE(std::string(begin, end) == "HTTP/1.1 200                              OK");
 	  }
+	}
+    }
+}
+
+SCENARIO("Common", "[common]")
+{
+  WHEN("Integral number field")
+    {
+      buffer_handle::adapter::itoa::to_string_t itoa;
+
+      WHEN("Static")
+	{
+	  integral_number_field_t<config::static_, uint8_t> number;
+
+	  std::size_t size = (std::size_t)number.handle<action::size>(nullptr, "Field", 42, itoa);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		end = number.handle<action::prepare>(begin, "Field", 42, itoa);
+
+		REQUIRE(end - begin == size);
+		REQUIRE(std::string(begin, end) == "Field: 42");
+	      }
+	    }
+	}
+
+      WHEN("Dynamic")
+	{
+	  integral_number_field_t<config::dynamic, uint8_t> number;
+
+	  std::size_t size = (std::size_t)number.handle<action::size>(nullptr, "Field", 42, itoa);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		end = number.handle<action::prepare>(begin, "Field", 42, itoa);
+
+		REQUIRE(end - begin == size);
+		REQUIRE(std::string(begin, end) == "Field: 42");
+
+		THEN("Write")
+		  {
+		    end = number.handle<action::write>(begin, "Field", 9, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Field:  9");
+		  }
+	      }
+	    }
 	}
     }
 }
