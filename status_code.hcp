@@ -1,8 +1,8 @@
 #include <cassert> // assert()
+#include <cstring> // strlen()
 
 #include <buffer_handle/number.hpp> // integral_number()
 #include <buffer_handle/string.hpp> // string()
-#include <buffer_handle/token.hpp> // space()
 
 namespace buffer_handle_http_header
 {
@@ -83,14 +83,24 @@ namespace buffer_handle_http_header
   template<config Config, class Code, action Action, class Itoa> inline
   char * status_code_(char * buffer, status_code_t value, const Itoa & itoa /* = Itoa() */)
   {
-    std::size_t max_digits = Code::max_code_digits;
-    buffer = buffer_handle::integral_number<Config, align::left, ' ', Action, Itoa, status_code_t, std::size_t>(buffer, value, max_digits, itoa);
+    uint8_t max_digits = 3;
 
-    buffer = buffer_handle::space<Config, Action>(buffer);
+    return buffer_handle::integral_number<Config, align::left, ' ', Action, Itoa, status_code_t, uint8_t>(buffer, value, max_digits, itoa);
+  }
 
+  template<config Config, class Code, action Action> inline
+  char * reason_phrase(char * buffer, status_code_t value)
+  {
     const char * reason = Code::reason(value);
-    buffer = buffer_handle::string<Config, align::right, ' ', Action>(buffer, reason, std::strlen(reason), Code::max_reason_length);
 
-    return buffer;
+    return buffer_handle::string<Config, align::right, ' ', Action>(buffer, reason, std::strlen(reason), Code::max_reason_length);
+  }
+
+  template<config Config, class Code, action Action> inline
+  char * reason_phrase(char * buffer, status_code_t value, std::size_t & previous_length)
+  {
+    const char * reason = Code::reason(value);
+
+    return buffer_handle::string<Config, align::right, ' ', Action>(buffer, reason, std::strlen(reason), Code::max_reason_length, previous_length);
   }
 };

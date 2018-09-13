@@ -6,6 +6,7 @@
 
 #include <buffer_handle_http_header/status_code.hpp>
 #include <buffer_handle_http_header/version.hpp>
+#include <buffer_handle_http_header/status_line.hpp>
 
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
@@ -36,7 +37,7 @@ SCENARIO("Status code", "[status_code]")
 		end = status_code_<config::static_, rfc2616_t, action::prepare>(begin, success::ok::value, itoa);
 
 		REQUIRE(end - begin == size);
-		REQUIRE(std::string(begin, end) == "200 OK");
+		REQUIRE(std::string(begin, end) == "200");
 	      }
 	  }
 	}
@@ -44,7 +45,7 @@ SCENARIO("Status code", "[status_code]")
 
   WHEN("Dynamic")
     {
-      std::size_t size = (std::size_t)status_code_<config::dynamic, rfc2616_t, action::size>(nullptr, rfc2616_t::any, itoa);
+      std::size_t size = (std::size_t)reason_phrase<config::dynamic, rfc2616_t, action::size>(nullptr, rfc2616_t::any);
 
       GIVEN("Size")
 	{
@@ -52,23 +53,23 @@ SCENARIO("Status code", "[status_code]")
 	  {
 	    THEN("Prepare")
 	      {
-		end = status_code_<config::dynamic, rfc2616_t, action::prepare>(begin, success::ok::value, itoa);
+		end = reason_phrase<config::dynamic, rfc2616_t, action::prepare>(begin, success::ok::value);
 
 		REQUIRE(end - begin == size);
-		REQUIRE(std::string(begin, end) == std::to_string(success::ok::value) + std::string(1 + rfc2616_t::max_reason_length - std::strlen(success::ok::reason), ' ') + success::ok::reason);
+		REQUIRE(std::string(begin, end) == std::string(rfc2616_t::max_reason_length - std::strlen(success::ok::reason), ' ') + success::ok::reason);
 
 		THEN("Write")
 		  {
-		    end = status_code_<config::dynamic, rfc2616_t, action::write>(begin, server_error::http_version_not_supported::value, itoa);
+		    end = reason_phrase<config::dynamic, rfc2616_t, action::write>(begin, server_error::http_version_not_supported::value);
 
 		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == std::to_string(server_error::http_version_not_supported::value) + " " + std::string(rfc2616_t::max_reason_length - std::strlen(server_error::http_version_not_supported::reason), ' ') + server_error::http_version_not_supported::reason);
+		    REQUIRE(std::string(begin, end) == std::string(rfc2616_t::max_reason_length - std::strlen(server_error::http_version_not_supported::reason), ' ') + server_error::http_version_not_supported::reason);
 		    THEN("Reset")
 		      {
-			end = status_code_<config::dynamic, rfc2616_t, action::write>(begin, client_error::requested_range_not_satisfiable::value, itoa);
+			end = reason_phrase<config::dynamic, rfc2616_t, action::write>(begin, client_error::requested_range_not_satisfiable::value);
 
 			REQUIRE(end - begin == size);
-			REQUIRE(std::string(begin, end) == std::to_string(client_error::requested_range_not_satisfiable::value) + " " + std::string(rfc2616_t::max_reason_length - std::strlen(client_error::requested_range_not_satisfiable::reason), ' ') + client_error::requested_range_not_satisfiable::reason);
+			REQUIRE(std::string(begin, end) == std::string(rfc2616_t::max_reason_length - std::strlen(client_error::requested_range_not_satisfiable::reason), ' ') + client_error::requested_range_not_satisfiable::reason);
 		      }
 		  }
 	      }
@@ -148,6 +149,44 @@ SCENARIO("Version", "[version]")
 		      }
 		  }
 	      }
+	  }
+	}
+    }
+}
+
+SCENARIO("Status line", "[status-line]")
+{
+  buffer_handle::adapter::itoa::to_string_t itoa;
+  std::size_t max_length = 0;
+
+  WHEN("Static")
+    {
+      std::size_t size = (std::size_t)status_line<config::static_, status_code::rfc2616_t, action::size>(nullptr, 1, 1, status_code::success::ok::value, max_length, itoa);
+
+      GIVEN("Size")
+	{
+	  GIVEN_A_BUFFER(size)
+	  {
+	    end = status_line<config::static_, status_code::rfc2616_t, action::prepare>(begin, 1, 1, status_code::success::ok::value, max_length, itoa);
+
+	    REQUIRE(std::string(begin, end) == "HTTP/1.1 200 OK");
+	  }
+	}
+    }
+
+  WHEN("status_line_t")
+    {
+      status_line_t<config::dynamic, status_code::rfc2616_t, uint8_t, buffer_handle::adapter::itoa::to_string_t> status_line;
+
+      std::size_t size = (std::size_t)status_line.handle<action::size>(nullptr, 1, 1, status_code::success::ok::value, itoa);
+
+      GIVEN("Size")
+	{
+	  GIVEN_A_BUFFER(size)
+	  {
+	    end = status_line.handle<action::prepare>(begin, 1, 1, status_code::success::ok::value, itoa);
+
+	    REQUIRE(std::string(begin, end) == "HTTP/1.1 200                              OK");
 	  }
 	}
     }

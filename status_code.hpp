@@ -100,7 +100,6 @@ namespace buffer_handle_http_header
     {
       static const status_code_t any = 999;
 
-      static const std::size_t max_code_digits = 3;
       static const std::size_t max_reason_length = std::strlen(client_error::requested_range_not_satisfiable::reason);
 
       static const char * reason(status_code_t code);
@@ -109,7 +108,6 @@ namespace buffer_handle_http_header
     struct rfc6585_t
     {
       static const status_code_t any = 999;
-      static const std::size_t max_code_digits = 3;
       static const std::size_t max_reason_length = std::strlen(server_error::network_authentication_required::reason);
 
       static const char * reason(status_code_t code);
@@ -117,7 +115,13 @@ namespace buffer_handle_http_header
   };
 
   template<config Config, class Code, action Action, class Itoa>
-  char * code_(char * buffer, status_code_t value, const Itoa & itoa = Itoa());
+  char * status_code_(char * buffer, status_code_t value, const Itoa & itoa = Itoa());
+
+  template<config Config, class Code, action Action>
+  char * reason_phrase(char * buffer, status_code_t value);
+
+  template<config Config, class Code, action Action>
+  char * reason_phrase(char * buffer, status_code_t value, std::size_t & previous_length);
 };
 
 #include <buffer_handle_http_header/status_code.hcp>

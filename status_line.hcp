@@ -1,0 +1,54 @@
+#include <buffer_handle/token.hpp> // space()
+
+#include <buffer_handle_http_header/status_code.hpp> // status_code_
+#include <buffer_handle_http_header/version.hpp> // version()
+
+namespace buffer_handle_http_header
+{
+  template<config Config, class Code, action Action, typename Number, class Itoa>
+  char * status_line(char * buffer, Number major, Number minor, status_code_t value, std::size_t & max_length, const Itoa & itoa /* = Itoa() */)
+  {
+    buffer = version<Config, Action, Number, Itoa>(buffer, major, minor, max_length, itoa);
+
+    buffer = buffer_handle::space<Config, Action>(buffer);
+
+    buffer = status_code_<Config, Code, Action, Itoa>(buffer, value, itoa);
+
+    buffer = buffer_handle::space<Config, Action>(buffer);
+
+    buffer = reason_phrase<Config, Code, Action>(buffer, value);
+
+    return buffer;
+  }
+
+  template<config Config, class Code, action Action, typename Number, class Itoa>
+  char * status_line(char * buffer, Number major, Number minor, status_code_t value, std::size_t & max_length, std::size_t & previous_length, const Itoa & itoa /* = Itoa() */)
+  {
+    buffer = version<Config, Action, Number, Itoa>(buffer, major, minor, max_length, itoa);
+
+    buffer = buffer_handle::space<Config, Action>(buffer);
+
+    buffer = status_code_<Config, Code, Action, Itoa>(buffer, value, itoa);
+
+    buffer = buffer_handle::space<Config, Action>(buffer);
+
+    buffer = reason_phrase<Config, Code, Action>(buffer, value, previous_length);
+
+    return buffer;
+  }
+
+  template<config Config, class Code, typename Number, class Itoa> inline
+  status_line_t<Config, Code, Number, Itoa>::status_line_t() :
+    max_version_length(0),
+    previous_reason_phrase_length(0)
+  {
+
+  }
+
+  template<config Config, class Code, typename Number, class Itoa>
+  template<action Action> inline
+  char * status_line_t<Config, Code, Number, Itoa>::handle(char * buffer, Number major, Number minor, status_code_t value, const Itoa & itoa /**/)
+  {
+    return status_line<Config, Code, Action, Number, Itoa>(buffer, major, minor, value, this->max_version_length, this->previous_reason_phrase_length, itoa);
+  }
+};

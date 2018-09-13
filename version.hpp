@@ -10,22 +10,18 @@ namespace buffer_handle_http_header
   template<config Config, action Action, typename Number, class Itoa>
   char * version(char * buffer, Number major, Number minor, std::size_t & max_length, const Itoa & itoa = Itoa());
 
-  template<config Config, typename Number>
+  template<config Config, typename Number, class Itoa>
   struct version_t
   {
   public:
-    version_t(Number major = 1, Number minor = 1);
-
-  public:
-    Number major;
-    Number minor;
+    version_t();
 
   private:
     std::size_t max_length;
 
   public:
-    template<action Action, class Itoa>
-    char * handle(char * buffer, const Itoa & itoa = Itoa());
+    template<action Action>
+    char * handle(char * buffer, Number major, Number minor, const Itoa & itoa = Itoa());
   };
 };
 
