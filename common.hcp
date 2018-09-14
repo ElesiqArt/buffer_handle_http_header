@@ -1,5 +1,6 @@
 #include <cstring> // strlen()
 
+#include <buffer_handle/character.hpp> // character()
 #include <buffer_handle/string.hpp> // string()
 #include <buffer_handle/timezone.hpp> // universal_timezone_t
 #include <buffer_handle/token.hpp> // carriage_return() new_line() colon() space()
@@ -102,5 +103,66 @@ namespace buffer_handle_http_header
       (buffer, value, timezone_type(buffer_handle::universal_timezone::GMT));
 
     return buffer;
+  }
+
+  template<config Config, bool ListSetMaxLength>
+  container_field_t<Config, ListSetMaxLength>::container_field_t() :
+    buffer_handle::container_t<Config, align::right, ' '>(0)
+  {
+
+  }
+
+  template<config Config, bool ListSetMaxLength>
+  template<action Action, class Iterator, class Element, class Separator> inline
+  char * container_field_t<Config, ListSetMaxLength>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
+  {
+    buffer = field_<Action>(buffer, field, std::strlen(field));
+
+    if(ListSetMaxLength
+       && Config == config::dynamic
+       && (Action == action::size || Action == action::prepare))
+      {
+	this->max_length = (std::size_t)buffer_handle::container
+	  <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
+	  (nullptr, begin, end, this->max_length, element, separator);
+      }
+
+    buffer = buffer_handle::container_t<Config, align::right, ' '>:: template handle<Action, Iterator, Element, Separator>(buffer, begin, end, element, separator);
+
+    return buffer;
+  }
+
+  template<config Config, bool ListSetMaxLength>
+  long_container_field_t<Config, ListSetMaxLength>::long_container_field_t() :
+    buffer_handle::container_t<Config, align::right, ' '>(0)
+  {
+
+  }
+
+  template<config Config, bool ListSetMaxLength>
+  template<action Action, class Iterator, class Element, class Separator> inline
+  char * long_container_field_t<Config, ListSetMaxLength>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
+  {
+    buffer = field_<Action>(buffer, field, std::strlen(field));
+
+    if(ListSetMaxLength
+       && Config == config::dynamic
+       && (Action == action::size || Action == action::prepare))
+      {
+	this->max_length = (std::size_t)buffer_handle::container
+	  <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
+	  (nullptr, begin, end, this->max_length, element, separator, this->max_length);
+      }
+
+    buffer = buffer_handle::long_container_t<Config, align::right, ' '>:: template handle<Action, Iterator, Element, Separator>(buffer, begin, end, element, separator);
+
+    return buffer;
+  }
+
+  template<char Separator>
+  template<config Config, action Action> inline
+  char * character_separator_t<Separator>::handle(char * buffer) const
+  {
+    return buffer_handle::character<Config, Action>(buffer, Separator);
   }
 };

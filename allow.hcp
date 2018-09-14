@@ -1,0 +1,94 @@
+#include <cstring> // memcpy()
+#include <type_traits> // underlying_type
+
+#include <buffer_handle/helper.hpp> // must_write()
+#include <buffer_handle/token.hpp> // comma()
+
+namespace buffer_handle_http_header
+{
+  namespace details
+  {
+    template<typename Method>
+    struct allow_iterator_t
+    {
+      typedef allow_iterator_t<Method> self_type;
+
+      template<typename T = uint8_t>
+      allow_iterator_t(Method method, T index = 0) : // 0 is for the end() iterator
+	method(method),
+	mask((Method)(index == 0 ? 0 : 1 << index))
+      {
+	this->operator ++ ();//Search for the first available value
+      }
+
+      Method method;
+      Method mask;
+
+      self_type & operator ++ ()
+      {
+	do
+	  {
+	    this->mask = (Method)((typename std::underlying_type<Method>::type)this->mask >> 1);
+	  }
+	while((Method)0 < this->mask
+	      && !((typename std::underlying_type<Method>::type)this->method
+		   & (typename std::underlying_type<Method>::type)this->mask));
+
+	return *this;
+      }
+
+      self_type operator ++ (int)
+      {
+	self_type old = *this;
+
+	this->operator ++ ();
+
+	return old;
+      }
+
+      bool operator == (const self_type it) const
+      {
+	return this->mask == it.mask;
+      }
+
+      bool operator != (const self_type it) const
+      {
+	return ! this->operator == (it);
+      }
+
+      Method operator * () const
+      {
+	return this->mask;
+      }
+    };
+
+    template<typename MethodName>
+    struct allow_method_handler_t
+    {
+      template<config Config, action Action>
+      char * handle(char * buffer, const allow_iterator_t<typename MethodName::value_type> & it) const
+      {
+	if(buffer_handle::must_write<Config, Action>())
+	  {
+	    std::memcpy(buffer, MethodName::get(*it), std::strlen(MethodName::get(*it)));
+	  }
+
+	return buffer + std::strlen(MethodName::get(*it));
+      }
+    };
+  };
+
+  template<config Config, class MethodName>
+  template<action Action, typename Method> inline
+  char * allow_t<Config, MethodName>::handle(char * buffer, Method method, MethodName & method_name)
+  {
+    typedef details::allow_iterator_t<Method> iterator_type;
+    typedef details::allow_method_handler_t<MethodName> handler_type;
+    typedef character_separator_t<','> separator_type;
+
+    return container_field_t<Config, true>::template handle
+      <Action, iterator_type, const handler_type, const separator_type>
+      (buffer, "Allow", iterator_type(method, MethodName::count), iterator_type(method),
+       handler_type(), separator_type());
+  }
+};

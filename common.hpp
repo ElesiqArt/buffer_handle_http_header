@@ -3,6 +3,7 @@
 
 #include <buffer_handle_http_header/type.hpp> // action align config
 
+#include <buffer_handle/container.hpp> // container_t long_container_t
 #include <buffer_handle/date.hpp> // rfc1123::date
 #include <buffer_handle/number.hpp> // integral_number_t long_integral_number_t
 #include <buffer_handle/string.hpp> // string_t long_string_t
@@ -52,6 +53,31 @@ namespace buffer_handle_http_header
 
   template<config Config, action Action>
   char * handle(char * buffer, const char * field, std::tm value);
+
+  template<config Config, bool ListSetMaxLength>
+  struct container_field_t : buffer_handle::container_t<Config, align::right, ' '>
+  {
+    container_field_t();
+
+    template<action Action, class Iterator, class Element, class Separator>
+    char * handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
+  };
+
+  template<config Config, bool ListSetMaxLength>
+  struct long_container_field_t : buffer_handle::long_container_t<Config, align::right, ' '>
+  {
+    long_container_field_t();
+
+    template<action Action, class Iterator, class Element, class Separator>
+    char * handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
+  };
+
+  template<char Separator>
+  struct character_separator_t
+  {
+    template<config Config, action Action>
+    char * handle(char * buffer) const;
+  };
 };
 
 #include <buffer_handle_http_header/common.hcp>
