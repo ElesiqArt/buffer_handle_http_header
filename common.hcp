@@ -1,9 +1,11 @@
-#include <cstring> // strlen()
+#include <cstring> // strlen() memcpy()
+#include <type_traits> // underlying_type
 
 #include <buffer_handle/character.hpp> // character()
+#include <buffer_handle/helper.hpp> // must_write()
 #include <buffer_handle/string.hpp> // string()
 #include <buffer_handle/timezone.hpp> // universal_timezone_t
-#include <buffer_handle/token.hpp> // carriage_return() new_line() colon() space()
+#include <buffer_handle/token.hpp> // carriage_return() comma(), new_line() colon() space()
 
 namespace buffer_handle_http_header
 {
@@ -106,13 +108,6 @@ namespace buffer_handle_http_header
   }
 
   template<config Config, bool ListSetMaxLength>
-  container_field_t<Config, ListSetMaxLength>::container_field_t() :
-    buffer_handle::container_t<Config, align::right, ' '>(0)
-  {
-
-  }
-
-  template<config Config, bool ListSetMaxLength>
   template<action Action, class Iterator, class Element, class Separator> inline
   char * container_field_t<Config, ListSetMaxLength>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
   {
@@ -130,13 +125,6 @@ namespace buffer_handle_http_header
     buffer = buffer_handle::container_t<Config, align::right, ' '>:: template handle<Action, Iterator, Element, Separator>(buffer, begin, end, element, separator);
 
     return buffer;
-  }
-
-  template<config Config, bool ListSetMaxLength>
-  long_container_field_t<Config, ListSetMaxLength>::long_container_field_t() :
-    buffer_handle::container_t<Config, align::right, ' '>(0)
-  {
-
   }
 
   template<config Config, bool ListSetMaxLength>
@@ -164,5 +152,98 @@ namespace buffer_handle_http_header
   char * character_separator_t<Separator>::handle(char * buffer) const
   {
     return buffer_handle::character<Config, Action>(buffer, Separator);
+  }
+
+  template<typename EnumSet>
+  template<typename T> inline
+  set_iterator_t<EnumSet>::set_iterator_t(EnumSet value, T max_number_of_elements /* = 0 */) :
+    value(value),
+    mask((EnumSet)(max_number_of_elements == 0 ? 0 : 1 << max_number_of_elements))
+  {
+    this->operator ++ ();//Search for the first available value
+  }
+
+  template<typename EnumSet> inline
+  set_iterator_t<EnumSet> & set_iterator_t<EnumSet>::operator ++ ()
+  {
+    do
+      {
+	this->mask = (EnumSet)((typename std::underlying_type<EnumSet>::type)this->mask >> 1);
+      }
+    while((EnumSet)0 < this->mask
+	  && !((typename std::underlying_type<EnumSet>::type)this->value
+	       & (typename std::underlying_type<EnumSet>::type)this->mask));
+
+    return *this;
+  }
+
+  template<typename EnumSet> inline
+  set_iterator_t<EnumSet> set_iterator_t<EnumSet>::operator ++ (int)
+  {
+    self_type old = *this;
+
+    this->operator ++ ();
+
+    return old;
+  }
+
+  template<typename EnumSet> inline
+  bool set_iterator_t<EnumSet>::operator == (const self_type it) const
+  {
+    return this->mask == it.mask;
+  }
+
+  template<typename EnumSet> inline
+  bool set_iterator_t<EnumSet>::operator != (const self_type it) const
+    {
+      return ! this->operator == (it);
+    }
+
+  template<typename EnumSet> inline
+  EnumSet set_iterator_t<EnumSet>::operator * () const
+  {
+    return this->mask;
+  }
+
+  template<class EnumSetName>
+  template<config Config, action Action> inline
+  char * set_iterator_handler_t<EnumSetName>::handle(char * buffer, const set_iterator_t<typename EnumSetName::value_type> & it) const
+  {
+    const char * value = EnumSetName::get(*it);
+
+    if(buffer_handle::must_write<Config, Action>())
+      {
+	std::memcpy(buffer, value, std::strlen(value));
+      }
+
+    return buffer + std::strlen(value);
+  }
+
+  template<config Config, class EnumSetName>
+  template<action Action> inline
+  char * set_field_t<Config, EnumSetName>::handle(char * buffer, const char * field, typename EnumSetName::value_type value, EnumSetName & value_name)
+  {
+    typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
+    typedef const set_iterator_handler_t<EnumSetName> handler_type;
+    typedef const character_separator_t<','> separator_type;
+
+    return container_field_t<Config, true>::template handle
+      <Action, iterator_type, handler_type, separator_type>
+      (buffer, field, iterator_type(value, EnumSetName::count), iterator_type(value),
+       handler_type(), separator_type());
+  }
+
+  template<config Config, class EnumSetName>
+  template<action Action> inline
+  char * long_set_field_t<Config, EnumSetName>::handle(char * buffer, const char * field, typename EnumSetName::value_type value, EnumSetName & value_name)
+  {
+    typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
+    typedef const set_iterator_handler_t<EnumSetName> handler_type;
+    typedef const character_separator_t<','> separator_type;
+
+    return long_container_field_t<Config, true>::template handle
+      <Action, iterator_type, handler_type, separator_type>
+      (buffer, field, iterator_type(value, EnumSetName::count), iterator_type(value),
+       handler_type(), separator_type());
   }
 };

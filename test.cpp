@@ -10,13 +10,15 @@
 #include <buffer_handle_http_header/version.hpp>
 
 #include <buffer_handle_http_header/allow.hpp>
+#include <buffer_handle_http_header/content_encoding.hpp>
 #include <buffer_handle_http_header/content_length.hpp>
 #include <buffer_handle_http_header/content_location.hpp>
 #include <buffer_handle_http_header/expires.hpp>
 
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
-#include <buffer_handle_http_header/method.hpp> // method_name_t
+#include <buffer_handle_http_header/method.hpp> // method_t
+#include <buffer_handle_http_header/content_coding.hpp> // content_coding_t
 
 using namespace buffer_handle_http_header;
 
@@ -376,13 +378,13 @@ SCENARIO("Common", "[common]")
 
 SCENARIO("Allow", "[allow]")
 {
-  method_name_t method_name;
+  method_t method_name;
 
   WHEN("Static")
     {
-      allow_t<config::static_, method_name_t> allow;
+      allow_t<config::static_, method_t> allow;
 
-      std::size_t size = (std::size_t)allow.handle<action::size>(nullptr, method_t::GET | method_t::POST, method_name);
+      std::size_t size = (std::size_t)allow.handle<action::size>(nullptr, method::GET | method::POST, method_name);
 
       GIVEN("Size")
 	{
@@ -390,7 +392,7 @@ SCENARIO("Allow", "[allow]")
 	  {
 	    THEN("Prepare")
 	      {
-		end = allow.handle<action::prepare>(begin, method_t::GET | method_t::POST, method_name);
+		end = allow.handle<action::prepare>(begin, method::GET | method::POST, method_name);
 
 		REQUIRE(end - begin == size);
 		REQUIRE(std::string(begin, end) == "Allow: GET,POST");
@@ -401,9 +403,9 @@ SCENARIO("Allow", "[allow]")
 
   WHEN("Dynamic")
     {
-      allow_t<config::dynamic, method_name_t> allow;
+      allow_t<config::dynamic, method_t> allow;
 
-      std::size_t size = (std::size_t)allow.handle<action::size>(nullptr, method_t::GET | method_t::POST | method_t::PUT | method_t::CONNECT, method_name);
+      std::size_t size = (std::size_t)allow.handle<action::size>(nullptr, method::GET | method::POST | method::PUT | method::CONNECT, method_name);
 
       GIVEN("Size")
 	{
@@ -411,14 +413,14 @@ SCENARIO("Allow", "[allow]")
 	  {
 	    THEN("Prepare")
 	      {
-		end = allow.handle<action::prepare>(begin, method_t::GET | method_t::POST | method_t::PUT | method_t::CONNECT, method_name);
+		end = allow.handle<action::prepare>(begin, method::GET | method::POST | method::PUT | method::CONNECT, method_name);
 
 		REQUIRE(end - begin == size);
 		REQUIRE(std::string(begin, end) == "Allow: GET,POST,PUT,CONNECT");
 
 		THEN("Write")
 		  {
-		    end = allow.handle<action::write>(begin, method_t::GET | method_t::POST, method_name);
+		    end = allow.handle<action::write>(begin, method::GET | method::POST, method_name);
 
 		    REQUIRE(end - begin == size);
 		    REQUIRE(std::string(begin, end) == "Allow:             GET,POST");

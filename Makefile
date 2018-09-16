@@ -12,7 +12,7 @@ test: test.o Makefile
 	g++ $< -o $@
 
 test.o: test.cpp Makefile
-	g++ -c $< -std=c++14 -MD -g -O0 -I $(CATCH) -I $(BUFFER_HANDLE) -I ../ -o $@
+	g++ -c $< -std=c++11 -MD -g -O0 -I $(CATCH) -I $(BUFFER_HANDLE) -I ../ -o $@
 
 -include test.d
 

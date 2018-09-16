@@ -1,0 +1,21 @@
+namespace buffer_handle_http_header
+{
+  inline
+  content_coding operator | (content_coding lhs, content_coding rhs)
+  {
+    return (content_coding)((std::underlying_type<content_coding>::type)lhs | (std::underlying_type<content_coding>::type)rhs);
+  }
+
+  inline
+  const char * content_coding_t::get(content_coding encoding)
+  {
+    switch(encoding)
+      {
+      case content_coding::gzip: "gzip";
+      case content_coding::compress: "compress";
+      case content_coding::deflate: "deflate";
+      case content_coding::identity: "identity";
+      default: return "";
+      }
+  }
+};

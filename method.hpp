@@ -5,7 +5,7 @@ namespace buffer_handle_http_header
 {
   // rfc2616 §5.1.1
 
-  enum class method_t : uint16_t
+  enum class method : uint16_t
   {
     OPTIONS = 1,
       GET = 2,
@@ -17,15 +17,15 @@ namespace buffer_handle_http_header
       CONNECT = 128
       };
 
-  method_t operator | (method_t lhs, method_t rhs);
+  method operator | (method lhs, method rhs);
 
-  struct method_name_t
+  struct method_t
   {
-    typedef method_t value_type;
+    typedef method value_type;
 
     static const std::size_t count = 8;
 
-    static const char * get(method_t method);
+    static const char * get(method method);
   };
 };
 

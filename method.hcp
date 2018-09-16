@@ -3,23 +3,24 @@
 namespace buffer_handle_http_header
 {
   inline
-  method_t operator | (method_t lhs, method_t rhs)
+  method operator | (method lhs, method rhs)
   {
-    return (method_t)((std::underlying_type<method_t>::type)lhs | (std::underlying_type<method_t>::type)rhs);
+    return (method)((std::underlying_type<method>::type)lhs | (std::underlying_type<method>::type)rhs);
   }
 
-  const char * method_name_t::get(method_t method)
+  inline
+  const char * method_t::get(method method)
   {
     switch(method)
       {
-      case method_t::OPTIONS: return "OPTIONS";
-      case method_t::GET: return "GET";
-      case method_t::HEAD: return "HEAD";
-      case method_t::POST: return "POST";
-      case method_t::PUT: return "PUT";
-      case method_t::DELETE: return "DELETE";
-      case method_t::TRACE: return "TRACE";
-      case method_t::CONNECT: return "CONNECT";
+      case method::OPTIONS: return "OPTIONS";
+      case method::GET: return "GET";
+      case method::HEAD: return "HEAD";
+      case method::POST: return "POST";
+      case method::PUT: return "PUT";
+      case method::DELETE: return "DELETE";
+      case method::TRACE: return "TRACE";
+      case method::CONNECT: return "CONNECT";
       default: return "";
       }
   }
