@@ -22,6 +22,7 @@
 
 //Response
 #include <buffer_handle_http_header/age.hpp>
+#include <buffer_handle_http_header/location.hpp>
 
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
