@@ -13,6 +13,7 @@
 #include <buffer_handle_http_header/content_encoding.hpp>
 #include <buffer_handle_http_header/content_length.hpp>
 #include <buffer_handle_http_header/content_location.hpp>
+#include <buffer_handle_http_header/content_md5.hpp>
 #include <buffer_handle_http_header/expires.hpp>
 
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
@@ -428,5 +429,35 @@ SCENARIO("Allow", "[allow]")
 	      }
 	  }
 	}
+    }
+}
+
+SCENARIO("Content MD5", "[content-md5]")
+{
+  char * digest_begin = nullptr;
+  char * digest_end = nullptr;
+
+  std::size_t size = (std::size_t)content_md5<action::size>(nullptr, digest_begin, digest_end);
+
+  GIVEN("Size")
+    {
+      GIVEN_A_BUFFER(size)
+      {
+	THEN("Prepare")
+	  {
+	    end = content_md5<action::prepare>(begin, digest_begin, digest_end);
+
+	    REQUIRE(end - begin == size);
+	    REQUIRE(digest_end - digest_begin == 24);
+
+	    THEN("Write")
+	      {
+		const char * digest = "Q2hlY2sgSW50ZWdyaXR5IQ==";
+		std::memcpy(digest_begin, digest, 24);
+
+		REQUIRE(std::string(begin, end) == std::string("Content-MD5: ") + digest);
+	      }
+	  }
+      }
     }
 }

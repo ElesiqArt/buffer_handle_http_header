@@ -1,0 +1,23 @@
+#include <cstring> // strlen()
+
+#include <buffer_handle_http_header/common.hpp> // field_()
+
+namespace buffer_handle_http_header
+{
+  template<action Action>
+  char * content_md5(char * buffer, char * & digest_begin, char * & digest_end)
+  {
+    buffer = field_<Action>(buffer, "Content-MD5", std::strlen("Content-MD5"));
+
+    if(Action == action::prepare)
+      {
+	digest_begin = buffer;
+	digest_end = buffer + 24;
+      }
+
+    // Base 64 of 128 bits (16 bytes)
+    // Immediate multiple of 4 greater than 4 * (n / 3) = 21.3 when n = 16
+
+    return buffer + 24;
+  }
+};

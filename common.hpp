@@ -14,7 +14,7 @@ namespace buffer_handle_http_header
   char * crlf(char * buffer);
 
   template<action Action>
-  char * field(char * buffer, const char * value, std::size_t length);
+  char * field_(char * buffer, const char * value, std::size_t length);
 
   template<config Config, typename I, typename MaxDigits = uint8_t>
   struct integral_number_field_t : public buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits>
