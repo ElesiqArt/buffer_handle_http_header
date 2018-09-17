@@ -9,6 +9,9 @@
 #include <buffer_handle_http_header/status_line.hpp>
 #include <buffer_handle_http_header/version.hpp>
 
+//General
+#include <buffer_handle_http_header/date.hpp>
+
 //Entity
 #include <buffer_handle_http_header/allow.hpp>
 #include <buffer_handle_http_header/content_encoding.hpp>

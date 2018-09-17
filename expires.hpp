@@ -1,7 +1,6 @@
 #ifndef BUFFER_HANDLE_HTTP_HEADER_EXPIRES_HPP
 #define BUFFER_HANDLE_HTTP_HEADER_EXPIRES_HPP
 
-#include <buffer_handle_http_header/common.hpp> // integral_number_field_t
 #include <buffer_handle_http_header/type.hpp> // action config
 
 namespace buffer_handle_http_header
