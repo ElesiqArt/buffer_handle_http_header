@@ -9,12 +9,16 @@
 #include <buffer_handle_http_header/status_line.hpp>
 #include <buffer_handle_http_header/version.hpp>
 
+//Entity
 #include <buffer_handle_http_header/allow.hpp>
 #include <buffer_handle_http_header/content_encoding.hpp>
 #include <buffer_handle_http_header/content_length.hpp>
 #include <buffer_handle_http_header/content_location.hpp>
 #include <buffer_handle_http_header/content_md5.hpp>
 #include <buffer_handle_http_header/expires.hpp>
+
+//Response
+#include <buffer_handle_http_header/age.hpp>
 
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 

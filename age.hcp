@@ -1,0 +1,18 @@
+namespace buffer_handle_http_header
+{
+  template<config Config, typename I, typename MaxDigits>
+  template<action Action, class Itoa>
+  char * age_t<Config, I, MaxDigits>::handle(char * buffer, I value, const Itoa & itoa /* = Itoa() */)
+  {
+    return integral_number_field_t<Config, I, MaxDigits>::template handle<Action, Itoa>
+      (buffer, "Age", value, itoa);
+  }
+
+  template<config Config, typename I, typename MaxDigits>
+  template<action Action, class Itoa>
+  char * long_age_t<Config, I, MaxDigits>::handle(char * buffer, I value, const Itoa & itoa /* = Itoa() */)
+  {
+    return integral_number_field_t<Config, I, MaxDigits>::template handle<Action, Itoa>
+      (buffer, "Age", value, itoa);
+  }
+};
