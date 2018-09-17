@@ -112,14 +112,14 @@ namespace buffer_handle_http_header
   struct set_field_t : container_field_t<Config, true>
   {
     template<action Action>
-    char * handle(char * buffer, const char * field, typename EnumSetName::value_type value, EnumSetName & value_name);
+    char * handle(char * buffer, const char * field, typename EnumSetName::value_type value);
   };
 
   template<config Config, class EnumSetName>
   struct long_set_field_t : long_container_field_t<Config, true>
   {
     template<action Action>
-    char * handle(char * buffer, const char * field, typename EnumSetName::value_type value, EnumSetName & value_name);
+    char * handle(char * buffer, const char * field, typename EnumSetName::value_type value);
   };
 };
 

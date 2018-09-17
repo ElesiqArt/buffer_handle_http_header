@@ -10,14 +10,14 @@ namespace buffer_handle_http_header
   struct content_encoding_t : public set_field_t<Config, ContentCoding>
   {
     template<action Action>
-    char * handle(char * buffer, typename ContentCoding::value_type value, ContentCoding & content_coding);
+    char * handle(char * buffer, typename ContentCoding::value_type value);
   };
 
   template<config Config, class ContentCoding>
   struct long_content_encoding_t : public long_set_field_t<Config, ContentCoding>
   {
     template<action Action>
-    char * handle(char * buffer, typename ContentCoding::value_type value, ContentCoding & content_coding);
+    char * handle(char * buffer, typename ContentCoding::value_type value);
   };
 };
 

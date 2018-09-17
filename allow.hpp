@@ -12,14 +12,14 @@ namespace buffer_handle_http_header
   struct allow_t : public set_field_t<Config, Method>
   {
     template<action Action>
-    char * handle(char * buffer, typename Method::value_type value, Method & method);
+    char * handle(char * buffer, typename Method::value_type value);
   };
 
   template<config Config, class Method>
   struct long_allow_t : public long_container_field_t<Config, true>
   {
     template<action Action>
-    char * handle(char * buffer, typename Method::value_type value, Method & method);
+    char * handle(char * buffer, typename Method::value_type value);
   };
 };
 

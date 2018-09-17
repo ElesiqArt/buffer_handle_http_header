@@ -221,7 +221,7 @@ namespace buffer_handle_http_header
 
   template<config Config, class EnumSetName>
   template<action Action> inline
-  char * set_field_t<Config, EnumSetName>::handle(char * buffer, const char * field, typename EnumSetName::value_type value, EnumSetName & value_name)
+  char * set_field_t<Config, EnumSetName>::handle(char * buffer, const char * field, typename EnumSetName::value_type value)
   {
     typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
     typedef const set_iterator_handler_t<EnumSetName> handler_type;
@@ -235,7 +235,7 @@ namespace buffer_handle_http_header
 
   template<config Config, class EnumSetName>
   template<action Action> inline
-  char * long_set_field_t<Config, EnumSetName>::handle(char * buffer, const char * field, typename EnumSetName::value_type value, EnumSetName & value_name)
+  char * long_set_field_t<Config, EnumSetName>::handle(char * buffer, const char * field, typename EnumSetName::value_type value)
   {
     typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
     typedef const set_iterator_handler_t<EnumSetName> handler_type;
