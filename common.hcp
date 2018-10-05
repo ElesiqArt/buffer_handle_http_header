@@ -28,11 +28,23 @@ namespace buffer_handle_http_header
     return buffer;
   }
 
+  template<action Action>
+  char * field_(char * buffer, const char * value)
+  {
+    return field_<Action>(buffer, value, std::strlen(value));
+  }
+
+  template<action Action>
+  char * attribute(char * buffer, const char * value)
+  {
+    return buffer_handle::string<config::static_, Action>(buffer, value, std::strlen(value));
+  }
+
   template<config Config, typename I, typename MaxDigits>
   template<action Action, class Itoa> inline
   char * integral_number_field_t<Config, I, MaxDigits>::handle(char * buffer, const char * field, I value, const Itoa & itoa /* = Itoa() */)
   {
-    buffer = field_<Action>(buffer, field, std::strlen(field));
+    buffer = field_<Action>(buffer, field);
 
     buffer = buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits>::template handle<Action, Itoa>(buffer, value, itoa);
 
@@ -43,7 +55,7 @@ namespace buffer_handle_http_header
   template<action Action, class Itoa> inline
   char * long_integral_number_field_t<Config, I, MaxDigits>::handle(char * buffer, const char * field, I value, const Itoa & itoa /* = Itoa() */)
   {
-    buffer = field_<Config, Action>(buffer, field, std::strlen(field));
+    buffer = field_<Config, Action>(buffer, field);
 
     buffer = buffer_handle::long_integral_number_t<Config, align::right, ' ', I, MaxDigits>::template handle<Action, Itoa>(buffer, value, itoa);
 
@@ -54,7 +66,7 @@ namespace buffer_handle_http_header
   template<action Action> inline
   char * string_field_t<Config>::handle(char * buffer, const char * field, const char * value, std::size_t length)
   {
-    buffer = field_<Action>(buffer, field, std::strlen(field));
+    buffer = field_<Action>(buffer, field);
 
     buffer = buffer_handle::string_t<Config, align::right, ' '>::template handle<Action>(buffer, value, length);
 
@@ -65,7 +77,7 @@ namespace buffer_handle_http_header
   template<action Action> inline
   char * long_string_field_t<Config>::handle(char * buffer, const char * field, const char * value, std::size_t length)
   {
-    buffer = field_<Action>(buffer, field, std::strlen(field));
+    buffer = field_<Action>(buffer, field);
 
     buffer = buffer_handle::long_string_t<Config, align::right, ' '>::template handle<Action>(buffer, value, length);
 
@@ -79,7 +91,7 @@ namespace buffer_handle_http_header
 	      Weekday weekday, Day day, Month month, Year year,
 	      Hours hours, Minutes minutes, Seconds seconds)
   {
-    buffer = field_<Action>(buffer, field, std::strlen(field));
+    buffer = field_<Action>(buffer, field);
 
     typedef buffer_handle::universal_timezone_t<config::static_, align::left, ' '> timezone_type;
 
@@ -97,7 +109,7 @@ namespace buffer_handle_http_header
   template<config Config, action Action> inline
   char * date(char * buffer, const char * field, std::tm value)
   {
-    buffer = field_<Action>(buffer, field, std::strlen(field));
+    buffer = field_<Action>(buffer, field);
 
     typedef buffer_handle::universal_timezone_t<config::static_, align::left, ' '> timezone_type;
 
@@ -111,7 +123,7 @@ namespace buffer_handle_http_header
   template<action Action, class Iterator, class Element, class Separator> inline
   char * container_field_t<Config, ListSetMaxLength>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
   {
-    buffer = field_<Action>(buffer, field, std::strlen(field));
+    buffer = field_<Action>(buffer, field);
 
     if(ListSetMaxLength
        && Config == config::dynamic
@@ -131,7 +143,7 @@ namespace buffer_handle_http_header
   template<action Action, class Iterator, class Element, class Separator> inline
   char * long_container_field_t<Config, ListSetMaxLength>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
   {
-    buffer = field_<Action>(buffer, field, std::strlen(field));
+    buffer = field_<Action>(buffer, field);
 
     if(ListSetMaxLength
        && Config == config::dynamic

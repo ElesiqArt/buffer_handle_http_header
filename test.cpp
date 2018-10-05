@@ -24,6 +24,8 @@
 #include <buffer_handle_http_header/age.hpp>
 #include <buffer_handle_http_header/location.hpp>
 
+#include <buffer_handle_http_header/cookie.hpp>
+
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
 #include <buffer_handle_http_header/method.hpp> // method_t
@@ -111,15 +113,15 @@ SCENARIO("Version", "[version]")
       GIVEN("Size")
 	{
 	  GIVEN_A_BUFFER(size)
-	    {
-	      THEN("Prepare")
-		{
-		  end = version<config::static_, action::prepare>(begin, 1, 1, max_length, itoa);
+	  {
+	    THEN("Prepare")
+	      {
+		end = version<config::static_, action::prepare>(begin, 1, 1, max_length, itoa);
 
-		  REQUIRE(end - begin == size);
-		  REQUIRE(std::string(begin, end) == "HTTP/1.1");
-		}
-	    }
+		REQUIRE(end - begin == size);
+		REQUIRE(std::string(begin, end) == "HTTP/1.1");
+	      }
+	  }
 	}
     }
 
@@ -465,5 +467,392 @@ SCENARIO("Content MD5", "[content-md5]")
 	      }
 	  }
       }
+    }
+}
+
+SCENARIO("Cookie", "[cookie]")
+{
+  WHEN("Handle bool")
+    {
+      const char * attribute = "attribute";
+
+      WHEN("Static")
+	{
+	  WHEN("true")
+	    {
+	      std::size_t size = (std::size_t)details::handle_bool<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), true);
+
+	      GIVEN("Size")
+		{
+		  GIVEN_A_BUFFER(size)
+		  {
+		    end = details::handle_bool<config::static_, action::prepare>(begin, attribute, std::strlen(attribute), true);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == std::string("; ") + attribute);
+		  }
+		}
+	    }
+
+	  WHEN("false")
+	    {
+	      std::size_t size = (std::size_t)details::handle_bool<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), true);
+
+	      REQUIRE(size == 1 + 1 + std::strlen(attribute));
+	    }
+	}
+
+      WHEN("Dynamic")
+	{
+	  std::size_t size = (std::size_t)details::handle_bool<config::dynamic, action::size>(nullptr, attribute, std::strlen(attribute), true);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = details::handle_bool<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), true);
+
+		    REQUIRE(end - begin == size);
+
+		    THEN("Write")
+		      {
+			end = details::handle_bool<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), true);
+
+			REQUIRE(end - begin == size);
+			REQUIRE(std::string(begin, end) == std::string("; ") + attribute);
+
+			THEN("Prepare")
+			  {
+			    end = details::handle_bool<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), true);
+
+			    REQUIRE(end - begin == size);
+
+			    THEN("Write")
+			      {
+				end = details::handle_bool<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), false);
+
+				REQUIRE(end - begin == size);
+				REQUIRE(std::string(begin, end) == std::string("; ") + std::string(std::strlen(attribute), ' '));
+			      }
+			  }
+		      }
+		  }
+	      }
+	    }
+	}
+    }
+
+  WHEN("Handle string")
+    {
+      const char * attribute = "attribute";
+      const char * value = "value";
+
+      std::size_t max_length = 0;
+
+      WHEN("Static")
+	{
+	  std::size_t size = (std::size_t)details::handle_string<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
+
+	  REQUIRE(max_length == 0);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = details::handle_string<config::static_, action::prepare>(begin, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
+
+		    REQUIRE(max_length == 0);
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + value);
+		  }
+	      }
+	    }
+	}
+
+      WHEN("Dynamic")
+	{
+	  const std::size_t max_length = 32;
+
+	  std::size_t size = (std::size_t)details::handle_string<config::dynamic, action::size>(nullptr, attribute, std::strlen(attribute), nullptr, std::strlen(value) + 10, max_length);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = details::handle_string<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), nullptr, std::strlen(value) + 10, max_length);
+
+		    REQUIRE(end - begin == size);
+
+		    THEN("Write")
+		      {
+			end = details::handle_string<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
+
+			REQUIRE(end - begin == size);
+			REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + value + ";" + std::string(max_length - std::strlen(value) - 1, ' '));
+
+			THEN("Reset")
+			  {
+			    end = details::handle_string<config::dynamic, action::reset>(begin, attribute, std::strlen(attribute), nullptr, 0, max_length);
+
+			    REQUIRE(end - begin == size);
+			    REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=;" + std::string(max_length - 1, ' '));
+
+			    THEN("Write")
+			      {
+				std::size_t part = 4;
+
+				end = details::handle_string<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), value, std::strlen(value) - part, max_length);
+
+				REQUIRE(end - begin == size);
+				REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + std::string(value, std::strlen(value) - part) + ";" + std::string(max_length - (std::strlen(value) - part) - 1, ' '));
+			      }
+			  }
+		      }
+		  }
+	      }
+	    }
+	}
+    }
+
+  WHEN("Value string")
+    {
+      WHEN("Static")
+	{
+	  WHEN("Is quoted")
+	    {
+	      std::size_t size = (std::size_t)details::value_string<config::static_, true, action::size>(nullptr, "Hello world!", 12, 0);
+
+	      GIVEN("Size")
+		{
+		  GIVEN_A_BUFFER(size)
+		    {
+		      THEN("Prepare")
+			{
+			  end = details::value_string<config::static_, true, action::prepare>(begin, "Hello world!", 12, 0);
+
+			  REQUIRE(end - begin == size);
+			  REQUIRE(std::string(begin, end) == "\"Hello world!\"");
+			}
+		    }
+		}
+	    }
+	}
+
+      WHEN("Dynamic")
+	{
+	  WHEN("IsQuoted")
+	    {
+	      std::size_t size = (std::size_t)details::value_string<config::dynamic, true, action::size>(nullptr, nullptr, 0, 16);
+
+	      GIVEN("Size")
+		{
+		  GIVEN_A_BUFFER(size)
+		  {
+		    THEN("Prepare")
+		      {
+			end = details::value_string<config::dynamic, true, action::prepare>(begin, "Hello world!", 12, 16);
+
+			REQUIRE(end - begin == size);
+			REQUIRE(std::string(begin, end) == "\"Hello world!\"    ");
+		      }
+		  }
+		}
+	    }
+	}
+    }
+
+  buffer_handle::adapter::itoa::to_string_t itoa;
+
+  WHEN("All static")
+    {
+      cookie_t<static_cookie_traits_t, true> cookie;
+
+      cookie.name = "cookie-name";
+      cookie.name_length = ::strlen(cookie.name);
+
+      cookie.value = "cookie value";
+      cookie.value_length = ::strlen(cookie.value);
+
+      cookie.has_expires = false;
+      cookie.has_max_age = false;
+
+      cookie.domain = nullptr;
+      cookie.path = nullptr;
+
+      cookie.is_secure = false;
+      cookie.http_only = false;
+
+      WHEN("Prepare none")
+	{
+	  std::size_t size = (std::size_t)cookie.handle<action::size>(nullptr, itoa);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = cookie.handle<action::prepare>(begin, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Set-Cookie: cookie-name=\"cookie value\"");
+		  }
+	      }
+	    }
+	}
+
+      WHEN("Prepare Max-Age")
+	{
+	  cookie.has_max_age = true;
+	  cookie.max_age = 72563283;
+
+	  std::size_t size = (std::size_t)cookie.handle<action::size>(nullptr, itoa);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = cookie.handle<action::prepare>(begin, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Set-Cookie: cookie-name=\"cookie value\"; Max-Age=72563283");
+		  }
+	      }
+	    }
+	}
+
+      WHEN("Prepare all")
+	{
+	  cookie.has_expires = true;
+	  cookie.expires.tm_wday = 0;
+	  cookie.expires.tm_mday = 1;
+	  cookie.expires.tm_mon = 11;
+	  cookie.expires.tm_year = 1;
+
+	  cookie.expires.tm_hour = 5;
+	  cookie.expires.tm_min = 23;
+	  cookie.expires.tm_sec = 59;
+
+	  cookie.has_max_age = true;
+	  cookie.max_age = 187293;
+
+	  cookie.domain = "do.m.ain";
+	  cookie.domain_length = ::strlen(cookie.domain);
+
+	  cookie.path = "/path/to/file";
+	  cookie.path_length = ::strlen(cookie.path);
+
+	  cookie.is_secure = true;
+	  cookie.http_only = true;
+
+	  std::size_t size = (std::size_t)cookie.handle<action::size>(nullptr, itoa);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = cookie.handle<action::prepare>(begin, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Set-Cookie: cookie-name=\"cookie value\"; Expires=Sun, 01 Dec 1901 05:23:59 GMT; Max-Age=187293; Domain=do.m.ain; Path=/path/to/file; Secure; HttpOnly");
+		  }
+	      }
+	    }
+	}
+    }
+
+  WHEN("All dynamic")
+    {
+      cookie_t<dynamic_cookie_traits_t, true> cookie;
+
+      cookie.max_name_length = 16;
+      cookie.max_value_length = 32;
+      cookie.max_age = 18273823;
+      cookie.max_domain_length = 16;
+      cookie.max_path_length = 32;
+
+      std::size_t size = (std::size_t)cookie.handle<action::size>(nullptr, itoa);
+
+      GIVEN("Size")
+	{
+	  GIVEN_A_BUFFER(size)
+	  {
+	    THEN("Prepare")
+	      {
+		end = cookie.handle<action::prepare>(begin, itoa);
+
+		REQUIRE(end - begin == size);
+		REQUIRE(std::string(begin, end) == "Set-Cookie:                 =\"\"                                ; Expires=                             ; Max-Age=        ; Domain=;               ; Path=;                               ;       ;         ");
+
+		cookie.name = "cookie-name";
+		cookie.name_length = ::strlen(cookie.name);
+
+		cookie.value = "cookie value";
+		cookie.value_length = ::strlen(cookie.value);
+
+		THEN("Write")
+		  {
+		    cookie.is_secure = true;
+		    cookie.http_only = true;
+
+		    end = cookie.handle<action::write>(begin, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Set-Cookie:      cookie-name=\"cookie value\"                    ; Expires=                             ; Max-Age=        ; Domain=;               ; Path=;                               ; Secure; HttpOnly");
+		  }
+
+		THEN("Write")
+		  {
+		     cookie.has_expires = true;
+		     cookie.expires.tm_wday = 0;
+		     cookie.expires.tm_mday = 1;
+		     cookie.expires.tm_mon = 11;
+		     cookie.expires.tm_year = 1;
+		     cookie.expires.tm_hour = 5;
+		     cookie.expires.tm_min = 23;
+		     cookie.expires.tm_sec = 59;
+
+		     end = cookie.handle<action::write>(begin, itoa);
+
+		     REQUIRE(end - begin == size);
+		     REQUIRE(std::string(begin, end) == "Set-Cookie:      cookie-name=\"cookie value\"                    ; Expires=Sun  01 Dec 1901 05 23 59    ; Max-Age=        ; Domain=;               ; Path=;                               ;       ;         ");
+		  }
+
+		THEN("Write")
+		  {
+		    cookie.has_max_age = true;
+
+		    end = cookie.handle<action::write>(begin, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Set-Cookie:      cookie-name=\"cookie value\"                    ; Expires=                             ; Max-Age=18273823; Domain=;               ; Path=;                               ;       ;         ");
+		  }
+
+		THEN("Write")
+		  {
+		    cookie.domain = "do.m.ain";
+		    cookie.domain_length = ::strlen(cookie.domain);
+
+		    cookie.path = "/path/to/file";
+		    cookie.path_length = ::strlen(cookie.path);
+
+		    end = cookie.handle<action::write>(begin, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Set-Cookie:      cookie-name=\"cookie value\"                    ; Expires=                             ; Max-Age=        ; Domain=do.m.ain;       ; Path=/path/to/file;                  ;       ;         ");
+		  }
+	      }
+	  }
+	}
     }
 }

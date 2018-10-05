@@ -16,6 +16,12 @@ namespace buffer_handle_http_header
   template<action Action>
   char * field_(char * buffer, const char * value, std::size_t length);
 
+  template<action Action>
+  char * field_(char * buffer, const char * value);
+
+  template<action Action>
+  char * attribute(char * buffer, const char * value);
+
   template<config Config, typename I, typename MaxDigits = uint8_t>
   struct integral_number_field_t : public buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits>
   {
