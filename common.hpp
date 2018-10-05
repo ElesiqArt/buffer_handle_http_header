@@ -58,7 +58,7 @@ namespace buffer_handle_http_header
 	      Hours hours, Minutes minutes, Seconds seconds);
 
   template<config Config, action Action>
-  char * handle(char * buffer, const char * field, std::tm value);
+  char * date(char * buffer, const char * field, std::tm value);
 
   template<config Config, bool ListSetMaxLength>
   struct container_field_t : buffer_handle::container_t<Config, align::right, ' '>

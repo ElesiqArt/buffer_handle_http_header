@@ -11,7 +11,7 @@ namespace buffer_handle_http_header
 
   namespace status_code
   {
-#define BUFFER_HANDLE_HTTP_INSTALL_STATUS_CODE(name_arg, value_arg, reason_arg)	\
+#define BUFFER_HANDLE_HTTP_HEADER_INSTALL_STATUS_CODE(name_arg, value_arg, reason_arg) \
     struct name_arg							\
     {									\
       static constexpr status_code_t value = value_arg;			\
@@ -19,7 +19,7 @@ namespace buffer_handle_http_header
     }
 
 #define DEFINE(name_arg, value_arg, reason_arg)				\
-    BUFFER_HANDLE_HTTP_INSTALL_STATUS_CODE(name_arg, value_arg, reason_arg)
+    BUFFER_HANDLE_HTTP_HEADER_INSTALL_STATUS_CODE(name_arg, value_arg, reason_arg)
 
     namespace informational
     {

@@ -1,8 +1,10 @@
-#include <cstring>
+#include <cstring> // memcpy() memset()
 
 #include <buffer_handle/date.hpp> // rfc1123::date()
 #include <buffer_handle/helper.hpp> // must_write()
+#include <buffer_handle/number.hpp> // integral_number()
 #include <buffer_handle/string.hpp> // string()
+#include <buffer_handle/timezone.hpp> // universal_timezone_t
 #include <buffer_handle/token.hpp> // equal() semicolon() space()
 
 namespace buffer_handle_http_header

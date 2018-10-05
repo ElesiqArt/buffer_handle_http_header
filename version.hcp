@@ -53,16 +53,16 @@ namespace buffer_handle_http_header
     return buffer;
   }
 
-  template<config Config, typename Number, class Itoa> inline
-  version_t<Config, Number, Itoa>::version_t() :
+  template<config Config, typename Number> inline
+  version_t<Config, Number>::version_t() :
     max_length(0)
   {
 
   }
 
-  template<config Config, typename Number, class Itoa>
-  template<action Action> inline
-  char * version_t<Config, Number, Itoa>::handle(char * buffer, Number major, Number minor, const Itoa & itoa /* = Itoa() */)
+  template<config Config, typename Number>
+  template<action Action, class Itoa> inline
+  char * version_t<Config, Number>::handle(char * buffer, Number major, Number minor, const Itoa & itoa /* = Itoa() */)
   {
     return version<Config, Action, Number, Itoa>(buffer, major, minor, this->max_length, itoa);
   }
