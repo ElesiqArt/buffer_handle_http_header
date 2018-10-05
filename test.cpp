@@ -11,6 +11,7 @@
 
 //General
 #include <buffer_handle_http_header/date.hpp>
+#include <buffer_handle_http_header/upgrade.hpp>
 
 //Entity
 #include <buffer_handle_http_header/allow.hpp>
