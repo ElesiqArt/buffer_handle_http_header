@@ -1,9 +1,3 @@
-#include <cstring> // memcpy()
-#include <type_traits> // underlying_type
-
-#include <buffer_handle/helper.hpp> // must_write()
-#include <buffer_handle/token.hpp> // comma()
-
 namespace buffer_handle_http_header
 {
   template<config Config, class Method>

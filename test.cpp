@@ -28,13 +28,16 @@
 
 #include <buffer_handle_http_header/cookie.hpp>
 
+#include <buffer_handle_http_header/access_control_allow_methods.hpp>
 #include <buffer_handle_http_header/access_control_max_age.hpp>
 
-#include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
-
+//Helpers
 #include <buffer_handle_http_header/method.hpp> // method_t
 #include <buffer_handle_http_header/content_coding.hpp> // content_coding_t
 #include <buffer_handle_http_header/range_unit.hpp> // range_units_t
+
+//Adapter
+#include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
 using namespace buffer_handle_http_header;
 

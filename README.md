@@ -568,6 +568,24 @@ char * last_modified(char * buffer, std::tm value);
 
 ### Cross Origin Resource Sharing ([W3C](http://www.w3.org/TR/2014/REC-cors-20140116/))
 
+#### Access-Control-Allow-Methods ([W3C](https://www.w3.org/TR/cors/#access-control-allow-methods-response-header))
+
+```cpp
+template<config Config, class Method>
+struct access_control_allow_methods_t
+{
+  template<action Action>
+  char * handle(char * buffer, typename Method::value_type value);
+};
+
+template<config Config, class Method>
+struct long_access_control_allow_methods_t
+{
+  template<action Action>
+  char * handle(char * buffer, typename Method::value_type value);
+};
+```
+
 #### Access-Control-Max-Age ([W3C](https://www.w3.org/TR/cors/#access-control-max-age-response-header))
 
 ```cpp
