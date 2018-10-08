@@ -22,6 +22,7 @@
 #include <buffer_handle_http_header/expires.hpp>
 
 //Response
+#include <buffer_handle_http_header/accept_ranges.hpp>
 #include <buffer_handle_http_header/age.hpp>
 #include <buffer_handle_http_header/location.hpp>
 
@@ -31,6 +32,7 @@
 
 #include <buffer_handle_http_header/method.hpp> // method_t
 #include <buffer_handle_http_header/content_coding.hpp> // content_coding_t
+#include <buffer_handle_http_header/range_unit.hpp> // range_units_t
 
 using namespace buffer_handle_http_header;
 

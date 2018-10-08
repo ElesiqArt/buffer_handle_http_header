@@ -1,0 +1,16 @@
+namespace buffer_handle_http_header
+{
+  template<config Config, class RangeUnit>
+  template<action Action> inline
+  char * accept_ranges_t<Config, RangeUnit>::handle(char * buffer, typename RangeUnit::value_type value)
+  {
+    return set_field_t<Config, RangeUnit>::template handle<Action>(buffer, "Content-Encoding", value);
+  }
+
+  template<config Config, class RangeUnit>
+  template<action Action> inline
+  char * long_accept_ranges_t<Config, RangeUnit>::handle(char * buffer, typename RangeUnit::value_type value)
+  {
+    return long_set_field_t<Config, RangeUnit>::template handle<Action>(buffer, "Content-Encoding", value);
+  }
+};

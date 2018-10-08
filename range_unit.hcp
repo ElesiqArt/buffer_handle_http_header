@@ -1,0 +1,12 @@
+namespace buffer_handle_http_header
+{
+  inline
+  const char * range_unit_t::get(range_unit unit)
+  {
+    switch(unit)
+      {
+      default: case range_unit::none: return "none";
+      case range_unit::bytes: return "bytes";
+      }
+  }
+};

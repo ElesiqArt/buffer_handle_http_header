@@ -270,6 +270,39 @@ struct long_upgrade_t
 
 ### Response headers ([RFC 2616 §6.2](https://tools.ietf.org/html/rfc2616#section-6.2))
 
+#### Accept-Ranges ([RFC 2616 §14.5](https://tools.ietf.org/html/rfc2616#section-14.5))
+
+```cpp
+//Defined in buffer_handle_http_header/accept_ranges.hpp
+
+template<config Config, class RangeUnit>
+struct accept_ranges_t
+{
+  template<action Action>
+  char * handle(char * buffer, typename RangeUnit::value_type value);
+};
+
+template<config Config, class RangeUnit>
+struct long_accept_ranges_t
+{
+  template<action Action>
+  char * handle(char * buffer, typename RangeUnit::value_type value);
+};
+```
+
+```cpp
+//Defined in buffer_handle_http_header/range_units.hpp
+
+enum class range_unit : uint8_t { none, bytes };
+
+struct range_unit_t
+{
+  typedef range_unit value_type;
+  static const std::size_t count;
+  static const char * get(range_unit unit);
+};
+```
+
 #### Age ([RFC 2616 §14.6](https://tools.ietf.org/html/rfc2616#section-14.6))
 
 ```cpp
@@ -412,7 +445,7 @@ method operator | (method lhs, method rhs);
 struct method_t
 {
   typedef method value_type;
-  static const std::size_t count = 8;
+  static const std::size_t count;
   static const char * get(method method);
 };
 ```
@@ -449,7 +482,7 @@ content_coding operator | (content_coding lhs, content_coding rhs);
 struct content_coding_t
 {
   typedef content_coding value_type;
-  static const std::size_t count = 4;
+  static const std::size_t count;
   static const char * get(content_coding encoding);
 };
 ```
@@ -533,7 +566,7 @@ template<config Config, action Action>
 char * last_modified(char * buffer, std::tm value);
 ```
 
-### Cross Origin Ressource Sharing ([W3C](https://www.w3.org/TR/cors/))
+### Cross Origin Resource Sharing ([W3C](http://www.w3.org/TR/2014/REC-cors-20140116/))
 
 ## Tests
 
