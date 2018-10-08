@@ -5,8 +5,6 @@
 
 namespace buffer_handle_http_header
 {
-  // rfc 2616 §14.15
-
   template<action Action>
   char * content_md5(char * buffer, char * & digest_begin, char * & digest_end);
 };

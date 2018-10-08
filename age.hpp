@@ -6,8 +6,6 @@
 
 namespace buffer_handle_http_header
 {
-  // rfc2616 §14.6
-
   template<config Config, typename I, typename MaxDigits = uint8_t>
   struct age_t : protected integral_number_field_t<Config, I, MaxDigits>
   {

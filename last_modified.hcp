@@ -1,3 +1,5 @@
+#include <buffer_handle_http_header/common.hpp> // date()
+
 namespace buffer_handle_http_header
 {
   template<config Config, action Action,

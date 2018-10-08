@@ -15,6 +15,7 @@ namespace buffer_handle_http_header
       case content_coding::compress: "compress";
       case content_coding::deflate: "deflate";
       case content_coding::identity: "identity";
+      case content_coding::br: "br";
       default: return "";
       }
   }

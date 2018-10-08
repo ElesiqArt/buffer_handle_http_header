@@ -1,12 +1,10 @@
 #ifndef BUFFER_HANDLE_HTTP_HEADER_COOKIE_HPP
 #define BUFFER_HANDLE_HTTP_HEADER_COOKIE_HPP
 
-#include <buffer_handle_http_header/type.hpp> // config
+#include <buffer_handle_http_header/type.hpp> // action config
 
 namespace buffer_handle_http_header
 {
-  // rfc 6265 §4.1
-
   template<config Name,
 	   config Value,
 	   config Expires,

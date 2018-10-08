@@ -6,8 +6,6 @@
 
 namespace buffer_handle_http_header
 {
-  // rfc2616 §14.14
-
   template<config Config>
   struct content_location_t : string_field_t<Config>
   {

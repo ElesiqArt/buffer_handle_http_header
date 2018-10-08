@@ -3,10 +3,9 @@
 
 namespace buffer_handle_http_header
 {
-  // rfc2616 §5.1.1
-
   enum class method : uint16_t
   {
+    // rfc 2616 §5.1.1
     OPTIONS = 1,
       GET = 2,
       HEAD = 4,

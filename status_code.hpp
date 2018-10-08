@@ -43,7 +43,7 @@ namespace buffer_handle_http_header
     namespace redirection
     {
       // rfc2616 §6.1.1
-      DEFINE(multiple_choice, 300, "Multiple Choices");
+      DEFINE(multiple_choices, 300, "Multiple Choices");
       DEFINE(moved_permanently, 301, "Moved Permanently");
       DEFINE(found, 302, "Found");
       DEFINE(see_other, 303, "See Other");

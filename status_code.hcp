@@ -25,7 +25,7 @@ namespace buffer_handle_http_header
 	  DEFINE(success::reset_content);
 	  DEFINE(success::partial_content);
 
-	  DEFINE(redirection::multiple_choice);
+	  DEFINE(redirection::multiple_choices);
 	  DEFINE(redirection::moved_permanently);
 	  DEFINE(redirection::found);
 	  DEFINE(redirection::see_other);

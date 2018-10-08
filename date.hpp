@@ -5,8 +5,6 @@
 
 namespace buffer_handle_http_header
 {
-  // rfc2616 §14.18
-
   template<config Config, action Action,
 	   typename Weekday, typename Day, typename Month, typename Year,
 	   typename Hours, typename Minutes, typename Seconds>

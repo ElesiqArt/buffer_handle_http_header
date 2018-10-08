@@ -1,6 +1,6 @@
 # Handle HTTP header buffer
 
-This **C++ 11** library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common HTTP header.
+This **C++ 11** library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common HTTP headers.
 
 * [Background](#background)
 * [Reference](#reference)
@@ -8,19 +8,25 @@ This **C++ 11** library under [MIT license](LICENSE) and based on the [buffer ha
 
 ## Background
 
-The library depends on [buffer handle v1.1](https://github.com/gscano/buffer_handle/releases/tag/v1.1). It adds a layer on top of buffer handle functions and functors in order to handle header fields.
-Wrapper code could be used to handle new headers and is defined in `buffer_handle_http_header/common.hpp`.
+The library depends on [buffer handle v1.1](https://github.com/gscano/buffer_handle/releases/tag/v1.1). Please refer to the [documentation](https://github.com/gscano/buffer_handle/blob/v1.1/README.md) for concepts and examples.
+
+This library adds a layer on top of buffer handle functions and functors in order to handle header fields.
+This wrapper could be used to handle new headers and is defined in `buffer_handle_http_header/common.hpp`.
 
 Normative documents used:
 * [RFC 2616](https://tools.ietf.org/html/rfc2616)
-* [RFC 6265](https://tools.ietf.org/html/rfc6265.html#section-4.1)
+* [RFC 6265](https://tools.ietf.org/html/rfc6265)
+* [RFC 6585](https://tools.ietf.org/html/rfc6585)
+* [RFC 7231](https://tools.ietf.org/html/rfc7231)
+* [RFC 7932](https://tools.ietf.org/html/rfc7932)
+* [W3C CORS](https://www.w3.org/TR/cors/)
 
 ## Reference
 
 All code is scoped in `namespace buffer_handle_http_header`.
 
 
-The [four types](https://github.com/gscano/buffer_handle/blob/master/README.md#types) defined by buffer handle are directly imported to avoid scoping:
+The [four types](https://github.com/gscano/buffer_handle/blob/v1.1/README.md#types) defined by buffer handle are directly imported to avoid scoping:
 ```cpp
 //Declared in buffer_handle_http_header/type.hpp
 
@@ -75,7 +81,7 @@ struct version_t
 };
 ```
 
-##### Status code and reason phrase
+#### Status code and reason phrase ([RFC 2616 §6.1.1](https://tools.ietf.org/html/rfc2616#section-6.1.1))
 
 ```cpp
 //Declared in buffer_handle_http_header/status_code.hpp
@@ -108,7 +114,7 @@ template<config Config, class Code, action Action>
 char * reason_phrase(char * buffer, status_code_t value, std::size_t & previous_length);
 ```
 
-##### Status code and reason phrase ([RFC 2616 §6.1.1](https://tools.ietf.org/html/rfc2616#section-6.1))
+##### [RFC 2616 §6.1.1](https://tools.ietf.org/html/rfc2616#section-6.1)
 ```cpp
 //Declared in buffer_handle_http_header/status_code.hpp
 
@@ -191,7 +197,7 @@ namespace status_code
 };
 ```
 
-##### Status code and reason phrase ([RFC 6585 §6.1.1](https://tools.ietf.org/html/rfc6585))
+##### [RFC 6585 §6.1.1](https://tools.ietf.org/html/rfc6585)
 
 ```cpp
 //Declared in buffer_handle_http_header/status_code.hpp
@@ -233,6 +239,33 @@ namespace status_code
 
 ```cpp
 //Defined in buffer_handle_http_header/date.hpp
+
+template<config Config, action Action,
+	     typename Weekday, typename Day, typename Month, typename Year,
+	     typename Hours, typename Minutes, typename Seconds>
+char * date(char * buffer, Weekday weekday, Day day, Month month, Year year,
+	    Hours hours, Minutes minutes, Seconds seconds);
+
+template<config Config, action Action>
+char * date(char * buffer, std::tm value);
+```
+
+#### Upgrade ([RFC2616 §14.42](https://tools.ietf.org/html/rfc2616#section-14.42))
+
+```cpp
+template<config Config, bool ListSetMaxLength>
+struct upgrade_t
+{
+  template<action Action, class Iterator, class Element, class Separator>
+  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
+};
+
+template<config Config, bool ListSetMaxLength>
+struct long_upgrade_t
+{
+  template<action Action, class Iterator, class Element, class Separator>
+  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
+};
 ```
 
 ### Response headers ([RFC 2616 §6.2](https://tools.ietf.org/html/rfc2616#section-6.2))
@@ -241,12 +274,42 @@ namespace status_code
 
 ```cpp
 //Defined in buffer_handle_http_header/age.hpp
+
+template<config Config, typename I, typename MaxDigits = uint8_t>
+struct age_t
+{
+  template<action Action, class Itoa>
+  char * handle(char * buffer, I value, const Itoa & itoa = Itoa());
+};
+
+template<config Config, typename I, typename MaxDigits = uint8_t>
+struct long_age_t
+{
+  template<action Action, class Itoa>
+  char * handle(char * buffer, I value, const Itoa & itoa = Itoa());
+};
 ```
 
-#### Location ([RFC 2616 §14.30](https://tools.ietf.org/html/rfc2616#section-14.30))
+#### Location ([RFC7231 §7.1.2](https://tools.ietf.org/html/rfc7231#section-7.1.2))
+
+Obsoletes [RFC 2616 §14.30](https://tools.ietf.org/html/rfc2616#section-14.30).
 
 ```cpp
 //Defined in buffer_handle_http_header/location.hpp
+
+template<config Config>
+struct location_t
+{
+  template<action Action>
+  char * handle(char * buffer, const char * value, std::size_t length);
+};
+
+template<config Config>
+struct long_location_t
+{
+  template<action Action>
+  char * handle(char * buffer, const char * value, std::size_t length);
+};
 ```
 
 #### Set-Cookie ([RFC 6265 §4.1](https://tools.ietf.org/html/rfc6265.html#section-4.1))
@@ -320,42 +383,154 @@ struct cookie_t
 
 ```cpp
 //Defined in buffer_handle_http_header/allow.hpp
+
+template<config Config, class Method>
+struct allow_t
+{
+  template<action Action>
+  char * handle(char * buffer, typename Method::value_type value);
+};
+
+template<config Config, class Method>
+struct long_allow_t
+{
+  template<action Action>
+  char * handle(char * buffer, typename Method::value_type value);
+};
+```
+
+The `Method` template parameter holds the method enumeration type and is used to convert a method to its string form.
+By default, [RFC 2616 §5.1.1](https://tools.ietf.org/html/rfc2616#section-5.1.1) methods are available.
+
+```cpp
+//Defined in buffer_handle_http_header/method.hpp
+
+enum class method : uint16_t { OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT };
+
+method operator | (method lhs, method rhs);
+
+struct method_t
+{
+  typedef method value_type;
+  static const std::size_t count = 8;
+  static const char * get(method method);
+};
 ```
 
 #### Content-Encoding ([RFC 2616 §14.11](https://tools.ietf.org/html/rfc2616#section-14.11))
 
 ```cpp
 //Defined in buffer_handle_http_header/content_encoding.hpp
+
+template<config Config, class ContentCoding>
+struct content_encoding_t
+{
+  template<action Action>
+  char * handle(char * buffer, typename ContentCoding::value_type value);
+};
+
+template<config Config, class ContentCoding>
+struct long_content_encoding_t
+{
+  template<action Action>
+  char * handle(char * buffer, typename ContentCoding::value_type value);
+};
+```
+
+The `ContentCoding` template parameter holds the content coding enumeration type and is used to convert a content coding to its string form.
+By default, [RFC 2616 §3.5](https://tools.ietf.org/html/rfc2616#section-3.5) and [RFC 7932 §13](https://tools.ietf.org/html/rfc7932#section-13) content codings are available.
+```cpp
+//Defined in buffer_handle_http_header/content_coding.hpp
+
+enum class content_coding : uint8_t { gzip, compress, deflate, identity, br };
+
+content_coding operator | (content_coding lhs, content_coding rhs);
+
+struct content_coding_t
+{
+  typedef content_coding value_type;
+  static const std::size_t count = 4;
+  static const char * get(content_coding encoding);
+};
 ```
 
 #### Content-Length ([RFC 2616 §14.13](https://tools.ietf.org/html/rfc2616#section-14.13))
 
 ```cpp
 //Defined in buffer_handle_http_header/content_length.hpp
+
+template<config Config>
+struct content_length_t
+{
+  template<action Action, class Itoa>
+  char * handle(char * buffer, std::size_t value, const Itoa & itoa = Itoa());
+};
+
+template<config Config>
+struct long_content_length_t
+{
+  template<action Action, class Itoa>
+  char * handle(char * buffer, std::size_t value, const Itoa & itoa = Itoa());
+};
 ```
 
 #### Content-Location ([RFC 2616 §14.14](https://tools.ietf.org/html/rfc2616#section-14.14))
 
 ```cpp
 //Defined in buffer_handle_http_header/content_location.hpp
+
+template<config Config>
+struct content_location_t
+{
+  template<action Action>
+  char * handle(char * buffer, const char * value, std::size_t length);
+};
+
+template<config Config>
+struct long_content_location_t
+{
+  template<action Action>
+  char * handle(char * buffer, const char * value, std::size_t length);
+};
 ```
 
 #### Content-MD5 ([RFC 2616 §14.15](https://tools.ietf.org/html/rfc2616#section-14.15))
 
 ```cpp
 //Defined in buffer_handle_http_header/content_md5.hpp
+
+template<action Action>
+char * content_md5(char * buffer, char * & digest_begin, char * & digest_end);
 ```
 
 #### Expires ([RFC 2616 §14.21](https://tools.ietf.org/html/rfc2616#section-14.21))
 
 ```cpp
 //Defined in buffer_handle_http_header/expires.hpp
+
+template<config Config, action Action,
+	     typename Weekday, typename Day, typename Month, typename Year,
+	     typename Hours, typename Minutes, typename Seconds>
+char * expires(char * buffer, Weekday weekday, Day day, Month month, Year year,
+		   Hours hours, Minutes minutes, Seconds seconds);
+
+template<config Config, action Action>
+char * expires(char * buffer, std::tm value);
 ```
 
 #### Last-Modified ([RFC 2616 §14.29](https://tools.ietf.org/html/rfc2616#section-14.29))
 
 ```cpp
 //Defined in buffer_handle_http_header/last_modified.hpp
+
+template<config Config, action Action,
+	   typename Weekday, typename Day, typename Month, typename Year,
+	   typename Hours, typename Minutes, typename Seconds>
+char * last_modified(char * buffer, Weekday weekday, Day day, Month month, Year year,
+			 Hours hours, Minutes minutes, Seconds seconds);
+
+template<config Config, action Action>
+char * last_modified(char * buffer, std::tm value);
 ```
 
 ### Cross Origin Ressource Sharing ([W3C](https://www.w3.org/TR/cors/))

@@ -6,8 +6,6 @@
 
 namespace buffer_handle_http_header
 {
-  // rfc 2616 §14.7
-
   template<config Config, class Method>
   struct allow_t : public set_field_t<Config, Method>
   {

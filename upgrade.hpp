@@ -5,8 +5,6 @@
 
 namespace buffer_handle_http_header
 {
-  //rfc 2616 §14.42
-
   template<config Config, bool ListSetMaxLength>
   struct upgrade_t : public container_field_t<Config, ListSetMaxLength>
   {
