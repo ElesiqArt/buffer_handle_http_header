@@ -251,9 +251,9 @@ namespace buffer_handle_http_header
   }
 
   // Have dynamic fields at the beginning for locality
-  template<typename Traits, bool IsValueQuoted>
+  template<typename Config, bool IsValueQuoted>
   template<action Action, class Itoa> inline
-  char * cookie_t<Traits, IsValueQuoted>::handle(char * buffer, const Itoa & itoa)
+  char * cookie_t<Config, IsValueQuoted>::handle(char * buffer, const Itoa & itoa)
   {
     buffer = field_<Action>(buffer, "Set-Cookie");
 

@@ -672,7 +672,7 @@ SCENARIO("Cookie", "[cookie]")
 
   WHEN("All static")
     {
-      cookie_t<static_cookie_traits_t, true> cookie;
+      cookie_t<static_cookie_config, true> cookie;
 
       cookie.name = "cookie-name";
       cookie.name_length = ::strlen(cookie.name);
@@ -774,7 +774,7 @@ SCENARIO("Cookie", "[cookie]")
 
   WHEN("All dynamic")
     {
-      cookie_t<dynamic_cookie_traits_t, true> cookie;
+      cookie_t<dynamic_cookie_config, true> cookie;
 
       cookie.max_name_length = 16;
       cookie.max_value_length = 32;

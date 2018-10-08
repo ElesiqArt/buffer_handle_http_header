@@ -7,28 +7,28 @@ namespace buffer_handle_http_header
 {
   // rfc 6265 §4.1
 
-  template<config NameConfig,
-	   config ValueConfig,
-	   config ExpiresConfig,
-	   config MaxAgeConfig,
-	   config DomainConfig,
-	   config PathConfig,
-	   config IsSecureConfig,
-	   config HttpOnlyConfig>
-  struct cookie_traits_t
+  template<config Name,
+	   config Value,
+	   config Expires,
+	   config MaxAge,
+	   config Domain,
+	   config Path,
+	   config IsSecure,
+	   config HttpOnly>
+  struct cookie_config
   {
-    static const config name_config = NameConfig;
-    static const config value_config = ValueConfig;
+    static const config name = Name;
+    static const config value = Value;
 
-    static const config expires_config = ExpiresConfig;
-    static const config max_age_config = MaxAgeConfig;
-    static const config domain_config = DomainConfig;
-    static const config path_config = PathConfig;
-    static const config is_secure_config = IsSecureConfig;
-    static const config http_only_config = HttpOnlyConfig;
+    static const config expires = Expires;
+    static const config max_age = MaxAge;
+    static const config domain = Domain;
+    static const config path = Path;
+    static const config is_secure = IsSecure;
+    static const config http_only = HttpOnly;
   };
 
-  enum class cookie_trait
+  enum class cookie_config_select
   {
     name,
       value,
@@ -41,26 +41,26 @@ namespace buffer_handle_http_header
       http_only
       };
 
-  namespace detail
+  namespace details
   {
     template<bool B, config T, config F>
-    struct conditional_cookie_trait
+    struct conditional_cookie_config
     {
       static const config value = T;
     };
 
     template<config T, config F>
-    struct conditional_cookie_trait<false, T, F>
+    struct conditional_cookie_config<false, T, F>
     {
       static const config value = F;
     };
   };
 
-  template<typename Traits, cookie_trait Trait, config Config>
-  struct set_cookie_trait
+  template<typename PreviousConfig, cookie_config_select Change, config Config>
+  struct set_cookie_config
   {
 #define DEFINE(X)							\
-    static const config X ## _config = detail::conditional_cookie_trait<Trait == cookie_trait::X, Config, Traits::X ## _config>::value
+    static const config X = details::conditional_cookie_config<Change == cookie_config_select::X, Config, PreviousConfig::X>::value
 
     DEFINE(name);
     DEFINE(value);
@@ -75,49 +75,47 @@ namespace buffer_handle_http_header
 #undef DEFINE
   };
 
-  struct static_cookie_traits_t
+  struct static_cookie_config
   {
-    static const config name_config = config::static_;
-    static const config value_config = config::static_;
+    static const config name = config::static_;
+    static const config value = config::static_;
 
-    static const config expires_config = config::static_;
-    static const config max_age_config = config::static_;
-    static const config domain_config = config::static_;
-    static const config path_config = config::static_;
-    static const config is_secure_config = config::static_;
-    static const config http_only_config = config::static_;
+    static const config expires = config::static_;
+    static const config max_age = config::static_;
+    static const config domain = config::static_;
+    static const config path = config::static_;
+    static const config is_secure = config::static_;
+    static const config http_only = config::static_;
   };
 
-  struct dynamic_cookie_traits_t
+  struct dynamic_cookie_config
   {
-    static const config name_config = config::dynamic;
-    static const config value_config = config::dynamic;
+    static const config name = config::dynamic;
+    static const config value = config::dynamic;
 
-    static const config expires_config = config::dynamic;
-    static const config max_age_config = config::dynamic;
-    static const config domain_config = config::dynamic;
-    static const config path_config = config::dynamic;
-    static const config is_secure_config = config::dynamic;
-    static const config http_only_config = config::dynamic;
+    static const config expires = config::dynamic;
+    static const config max_age = config::dynamic;
+    static const config domain = config::dynamic;
+    static const config path = config::dynamic;
+    static const config is_secure = config::dynamic;
+    static const config http_only = config::dynamic;
   };
 
-  template<typename Traits, bool IsValueQuoted>
+  template<typename Config, bool IsValueQuoted>
   struct cookie_t
   {
   public:
-    typedef Traits traits_type;
+    static const config name_config = Config::name;
+    static const config value_config = Config::value;
+
+    static const config expires_config = Config::expires;
+    static const config max_age_config = Config::max_age;
+    static const config domain_config = Config::domain;
+    static const config path_config = Config::path;
+    static const config is_secure_config = Config::is_secure;
+    static const config http_only_config = Config::http_only;
 
   public:
-    static const config name_config = traits_type::name_config;
-    static const config value_config = traits_type::value_config;
-
-    static const config expires_config = traits_type::expires_config;
-    static const config max_age_config = traits_type::max_age_config;
-    static const config domain_config = traits_type::domain_config;
-    static const config path_config = traits_type::path_config;
-    static const config is_secure_config = traits_type::is_secure_config;
-    static const config http_only_config = traits_type::http_only_config;
-
     static const bool is_value_quoted = IsValueQuoted;
 
   public:
@@ -132,7 +130,6 @@ namespace buffer_handle_http_header
     std::size_t value_length;
     std::size_t max_value_length;
 
-  public:
     std::tm expires;
 
     time_t max_age;
@@ -150,7 +147,7 @@ namespace buffer_handle_http_header
     uint8_t is_secure : 1;
     uint8_t http_only : 1;
 
-  private:
+  protected:
     uint8_t max_max_age_digits;
 
   public:

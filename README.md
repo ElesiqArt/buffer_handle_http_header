@@ -2,18 +2,18 @@
 
 This **C++ 11** library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common HTTP header.
 
-* [Concept](#concept)
+* [Background](#background)
 * [Reference](#reference)
 * [Tests](#tests)
 
-## Concept
+## Background
 
-The normative document, if not stated otherwise is [RFC 2616](https://tools.ietf.org/html/rfc2616).
-
-The library depends on [buffer handle v1.1](https://github.com/gscano/buffer_handle/releases/tag/v1.1).
-
-The library adds a layer on top of buffer handle functions and functors in order to handle header fields.
+The library depends on [buffer handle v1.1](https://github.com/gscano/buffer_handle/releases/tag/v1.1). It adds a layer on top of buffer handle functions and functors in order to handle header fields.
 Wrapper code could be used to handle new headers and is defined in `buffer_handle_http_header/common.hpp`.
+
+Normative documents used:
+* [RFC 2616](https://tools.ietf.org/html/rfc2616)
+* [RFC 6265](https://tools.ietf.org/html/rfc6265.html#section-4.1)
 
 ## Reference
 
@@ -249,10 +249,68 @@ namespace status_code
 //Defined in buffer_handle_http_header/location.hpp
 ```
 
-#### Cookie ([RFC 6265 §4.1](https://tools.ietf.org/html/rfc6265.html#section-4.1))
+#### Set-Cookie ([RFC 6265 §4.1](https://tools.ietf.org/html/rfc6265.html#section-4.1))
 
 ```cpp
-//Defined in buffer_handle_http_header/cookie.hpp
+//Declared in buffer_handle_http_header/cookie.hpp
+
+template<config Name, config Value, config Expires, config MaxAge,
+	 config Domain, config Path, config IsSecure, config HttpOnly>
+struct cookie_config
+{
+  static const config name;
+  static const config value;
+  static const config expires;
+  static const config max_age;
+  static const config domain;
+  static const config path;
+  static const config is_secure;
+  static const config http_only;
+};
+
+enum class cookie_config_select { name, value, expires, max_age, domain, path, is_secure, http_only };
+
+template<typename PreviousConfig, cookie_config_select Change, config Config>
+struct set_cookie_config;
+
+struct static_cookie_config;
+struct dynamic_cookie_config;
+```
+
+The `set_cookie_config` structure can be used to set the configuration of a given field.
+
+```cpp
+template<typename Config, bool IsValueQuoted>
+struct cookie_t
+{
+  cost char * name;
+  std::size_t name_length;
+  std::size_t max_name_length;
+
+  const char * value;
+  std::size_t value_length;
+  std::size_t max_value_length;
+
+  std::tm expires;
+
+  time_t max_age;
+
+  const char * domain;
+  std::size_t domain_length;
+  std::size_t max_domain_length;
+
+  const char * path;
+  std::size_t path_length;
+  std::size_t max_path_length;
+
+  uint8_t has_expires;
+  uint8_t has_max_age;
+  uint8_t is_secure;
+  uint8_t http_only;
+
+  template<action Action, class Itoa>
+  char * handle(char * buffer, const Itoa & itoa);
+};
 ```
 
 
@@ -299,6 +357,8 @@ namespace status_code
 ```cpp
 //Defined in buffer_handle_http_header/last_modified.hpp
 ```
+
+### Cross Origin Ressource Sharing ([W3C](https://www.w3.org/TR/cors/))
 
 ## Tests
 
