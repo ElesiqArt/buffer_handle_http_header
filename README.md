@@ -568,6 +568,26 @@ char * last_modified(char * buffer, std::tm value);
 
 ### Cross Origin Resource Sharing ([W3C](http://www.w3.org/TR/2014/REC-cors-20140116/))
 
+#### Access-Control-Max-Age ([W3C](https://www.w3.org/TR/cors/#access-control-max-age-response-header))
+
+```cpp
+//Defined in buffer_handle_http_header/access_control_max_age.hpp
+
+template<config Config, typename I, typename MaxDigits = uint8_t>
+struct access_control_max_age_t
+{
+  template<action Action, class Itoa>
+  char * handle(char * buffer, I value, const Itoa & itoa = Itoa());
+};
+
+template<config Config, typename I, typename MaxDigits = uint8_t>
+struct long_access_control_max_age_t
+{
+  template<action Action, class Itoa>
+  char * handle(char * buffer, I value, const Itoa & itoa = Itoa());
+};
+```
+
 ## Tests
 
 Run `make test` to compile and `make run-test` to execute, or simply `make`.

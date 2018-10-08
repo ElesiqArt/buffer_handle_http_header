@@ -28,6 +28,8 @@
 
 #include <buffer_handle_http_header/cookie.hpp>
 
+#include <buffer_handle_http_header/access_control_max_age.hpp>
+
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
 #include <buffer_handle_http_header/method.hpp> // method_t
