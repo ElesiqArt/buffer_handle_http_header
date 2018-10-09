@@ -40,14 +40,14 @@ namespace buffer_handle_http_header
   struct string_field_t : buffer_handle::string_t<Config, align::right, ' '>
   {
     template<action Action>
-    char * handle(char * bufer, const char * field, const char * value, std::size_t length);
+    char * handle(char * buffer, const char * field, const char * value, std::size_t length);
   };
 
   template<config Config>
   struct long_string_field_t : buffer_handle::long_string_t<Config, align::right, ' '>
   {
     template<action Action>
-    char * handle(char * bufer, const char * field, const char * value, std::size_t length);
+    char * handle(char * buffer, const char * field, const char * value, std::size_t length);
   };
 
   template<config Config, action Action,

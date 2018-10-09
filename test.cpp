@@ -31,6 +31,7 @@
 #include <buffer_handle_http_header/access_control_allow_credentials.hpp>
 #include <buffer_handle_http_header/access_control_allow_headers.hpp>
 #include <buffer_handle_http_header/access_control_allow_methods.hpp>
+#include <buffer_handle_http_header/access_control_allow_origin.hpp>
 #include <buffer_handle_http_header/access_control_expose_headers.hpp>
 #include <buffer_handle_http_header/access_control_max_age.hpp>
 

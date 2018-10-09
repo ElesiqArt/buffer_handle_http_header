@@ -572,7 +572,19 @@ struct long_access_control_allow_methods_t
 #### Access-Control-Allow-Origin ([W3C](https://www.w3.org/TR/cors/#access-control-allow-origin-response-header))
 
 ```cpp
+template<config Config>
+struct access_control_allow_origin_t
+{
+  template<action Action>
+  char * handle(char * bufer, const char * value, std::size_t length);
+};
 
+template<config Config>
+struct long_access_control_allow_origin_t
+{
+  template<action Action>
+  char * handle(char * bufer, const char * value, std::size_t length);
+};
 ```
 
 #### Access-Control-Expose-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-expose-headers-response-header))
