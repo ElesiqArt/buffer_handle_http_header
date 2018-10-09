@@ -290,18 +290,7 @@ struct long_accept_ranges_t
 };
 ```
 
-```cpp
-//Defined in buffer_handle_http_header/range_units.hpp
-
-enum class range_unit : uint8_t { none, bytes };
-
-struct range_unit_t
-{
-  typedef range_unit value_type;
-  static const std::size_t count;
-  static const char * get(range_unit unit);
-};
-```
+The [`RangeUnit`](#range-unit) template parameter holds the range unit enumeration type and is used to convert a range unit to its string form.
 
 #### Age ([RFC 2616 §14.6](https://tools.ietf.org/html/rfc2616#section-14.6))
 
@@ -432,23 +421,7 @@ struct long_allow_t
 };
 ```
 
-The `Method` template parameter holds the method enumeration type and is used to convert a method to its string form.
-By default, [RFC 2616 §5.1.1](https://tools.ietf.org/html/rfc2616#section-5.1.1) methods are available.
-
-```cpp
-//Defined in buffer_handle_http_header/method.hpp
-
-enum class method : uint16_t { OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT };
-
-method operator | (method lhs, method rhs);
-
-struct method_t
-{
-  typedef method value_type;
-  static const std::size_t count;
-  static const char * get(method method);
-};
-```
+The [`Method`](#method) template parameter holds the method enumeration type and is used to convert a method to its string form.
 
 #### Content-Encoding ([RFC 2616 §14.11](https://tools.ietf.org/html/rfc2616#section-14.11))
 
@@ -470,22 +443,7 @@ struct long_content_encoding_t
 };
 ```
 
-The `ContentCoding` template parameter holds the content coding enumeration type and is used to convert a content coding to its string form.
-By default, [RFC 2616 §3.5](https://tools.ietf.org/html/rfc2616#section-3.5) and [RFC 7932 §13](https://tools.ietf.org/html/rfc7932#section-13) content codings are available.
-```cpp
-//Defined in buffer_handle_http_header/content_coding.hpp
-
-enum class content_coding : uint8_t { gzip, compress, deflate, identity, br };
-
-content_coding operator | (content_coding lhs, content_coding rhs);
-
-struct content_coding_t
-{
-  typedef content_coding value_type;
-  static const std::size_t count;
-  static const char * get(content_coding encoding);
-};
-```
+The [`ContentCoding`](#content-coding) template parameter holds the content coding enumeration type and is used to convert a content coding to its string form.
 
 #### Content-Length ([RFC 2616 §14.13](https://tools.ietf.org/html/rfc2616#section-14.13))
 
@@ -603,6 +561,63 @@ struct long_access_control_max_age_t
 {
   template<action Action, class Itoa>
   char * handle(char * buffer, I value, const Itoa & itoa = Itoa());
+};
+```
+
+### Common
+
+#### Content coding
+
+By default, [RFC 2616 §3.5](https://tools.ietf.org/html/rfc2616#section-3.5) and [RFC 7932 §13](https://tools.ietf.org/html/rfc7932#section-13) content codings are available.
+
+```cpp
+//Defined in buffer_handle_http_header/content_coding.hpp
+
+enum class content_coding : uint8_t { gzip, compress, deflate, identity, br };
+
+content_coding operator | (content_coding lhs, content_coding rhs);
+
+struct content_coding_t
+{
+  typedef content_coding value_type;
+  static const std::size_t count;
+  static const char * get(content_coding encoding);
+};
+```
+
+#### Method
+
+By default, [RFC 2616 §5.1.1](https://tools.ietf.org/html/rfc2616#section-5.1.1) methods are available.
+
+```cpp
+//Defined in buffer_handle_http_header/method.hpp
+
+enum class method : uint16_t { OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT };
+
+method operator | (method lhs, method rhs);
+
+struct method_t
+{
+  typedef method value_type;
+  static const std::size_t count;
+  static const char * get(method method);
+};
+```
+
+#### Range unit
+
+By default, [RFC 2616 §3.12](https://tools.ietf.org/html/rfc2616#section-3.12) range units are available.
+
+```cpp
+//Defined in buffer_handle_http_header/range_unit.hpp
+
+enum class range_unit : uint8_t { none, bytes };
+
+struct range_unit_t
+{
+  typedef range_unit value_type;
+  static const std::size_t count;
+  static const char * get(range_unit unit);
 };
 ```
 
