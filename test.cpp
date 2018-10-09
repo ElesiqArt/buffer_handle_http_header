@@ -28,8 +28,10 @@
 
 #include <buffer_handle_http_header/cookie.hpp>
 
+#include <buffer_handle_http_header/access_control_allow_credentials.hpp>
 #include <buffer_handle_http_header/access_control_allow_headers.hpp>
 #include <buffer_handle_http_header/access_control_allow_methods.hpp>
+#include <buffer_handle_http_header/access_control_expose_headers.hpp>
 #include <buffer_handle_http_header/access_control_max_age.hpp>
 
 //Helpers
@@ -859,6 +861,82 @@ SCENARIO("Cookie", "[cookie]")
 
 		    REQUIRE(end - begin == size);
 		    REQUIRE(std::string(begin, end) == "Set-Cookie:      cookie-name=\"cookie value\"                    ; Expires=                             ; Max-Age=        ; Domain=do.m.ain;       ; Path=/path/to/file;                  ;       ;         ");
+		  }
+	      }
+	  }
+	}
+    }
+}
+
+SCENARIO("Access-Control-Allow-Credentials", "[access-control-allow-credentials]")
+{
+  WHEN("Static")
+    {
+      WHEN("True")
+	{
+	  std::size_t size = (std::size_t)access_control_allow_credentials<config::static_, action::size>(nullptr, true);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = access_control_allow_credentials<config::static_, action::prepare>(begin, true);
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Access-Control-Allow-Credentials: true");
+		  }
+	      }
+	    }
+	}
+
+      WHEN("False")
+	{
+	  std::size_t size = (std::size_t)access_control_allow_credentials<config::static_, action::size>(nullptr, false);
+
+	  REQUIRE(size == 0);
+	}
+    }
+
+  WHEN("Dynamic")
+    {
+      std::size_t size = (std::size_t)access_control_allow_credentials<config::dynamic, action::size>(nullptr, true);
+
+      REQUIRE(size == (std::size_t)access_control_allow_credentials<config::dynamic, action::size>(nullptr, false));
+
+      GIVEN("Size")
+	{
+	  GIVEN_A_BUFFER(size)
+	  {
+	    THEN("Prepare")
+	      {
+		end = access_control_allow_credentials<config::dynamic, action::prepare>(buffer, true);
+
+		REQUIRE(end - begin == size);
+		REQUIRE(std::string(begin, end) == "Access-Control-Allow-Credentials: true");
+
+		THEN("Write")
+		  {
+		    end = access_control_allow_credentials<config::dynamic, action::write>(buffer, false);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "                                      ");
+		  }
+	      }
+
+	    THEN("Prepare")
+	      {
+		end = access_control_allow_credentials<config::dynamic, action::prepare>(buffer, false);
+
+		REQUIRE(end - begin == size);
+		REQUIRE(std::string(begin, end) == "                                      ");
+
+		THEN("Write")
+		  {
+		    end = access_control_allow_credentials<config::dynamic, action::prepare>(buffer, true);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Access-Control-Allow-Credentials: true");
 		  }
 	      }
 	  }

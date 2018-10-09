@@ -526,6 +526,13 @@ char * last_modified(char * buffer, std::tm value);
 
 ### Cross Origin Resource Sharing ([W3C](http://www.w3.org/TR/2014/REC-cors-20140116/))
 
+#### Access-Control-Allow-Credentials ([W3C](https://www.w3.org/TR/cors/#access-control-allow-credentials-response-header))
+
+```cpp
+template<config Config, action Action>
+char * access_control_allow_credentials(char * buffer, bool value);
+```
+
 #### Access-Control-Allow-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-allow-headers-response-header))
 
 ```cpp
@@ -561,6 +568,13 @@ struct long_access_control_allow_methods_t
   char * handle(char * buffer, typename Method::value_type value);
 };
 ```
+
+#### Access-Control-Allow-Origin ([W3C](https://www.w3.org/TR/cors/#access-control-allow-origin-response-header))
+
+```cpp
+
+```
+
 #### Access-Control-Expose-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-expose-headers-response-header))
 
 ```cpp
