@@ -561,6 +561,23 @@ struct long_access_control_allow_methods_t
   char * handle(char * buffer, typename Method::value_type value);
 };
 ```
+#### Access-Control-Expose-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-expose-headers-response-header))
+
+```cpp
+template<config Config>
+struct access_control_expose_headers_t
+{
+  template<action Action, class Iterator, class Element>
+  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
+};
+
+template<config Config>
+struct long_access_control_expose_headers_t
+{
+  template<action Action, class Iterator, class Element>
+  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
+};
+```
 
 #### Access-Control-Max-Age ([W3C](https://www.w3.org/TR/cors/#access-control-max-age-response-header))
 
