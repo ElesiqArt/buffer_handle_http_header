@@ -28,6 +28,7 @@
 
 #include <buffer_handle_http_header/cookie.hpp>
 
+#include <buffer_handle_http_header/access_control_allow_headers.hpp>
 #include <buffer_handle_http_header/access_control_allow_methods.hpp>
 #include <buffer_handle_http_header/access_control_max_age.hpp>
 

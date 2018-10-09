@@ -526,6 +526,24 @@ char * last_modified(char * buffer, std::tm value);
 
 ### Cross Origin Resource Sharing ([W3C](http://www.w3.org/TR/2014/REC-cors-20140116/))
 
+#### Access-Control-Allow-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-allow-headers-response-header))
+
+```cpp
+template<config Config>
+struct access_control_allow_headers_t : container_field_t<Config, true>
+{
+  template<action Action, class Iterator, class Element>
+  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
+};
+
+template<config Config>
+struct long_access_control_allow_headers_t : long_container_field_t<Config, true>
+{
+  template<action Action, class Iterator, class Element>
+  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
+};
+```
+
 #### Access-Control-Allow-Methods ([W3C](https://www.w3.org/TR/cors/#access-control-allow-methods-response-header))
 
 ```cpp
