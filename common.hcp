@@ -2,7 +2,7 @@
 #include <type_traits> // underlying_type
 
 #include <buffer_handle/character.hpp> // character()
-#include <buffer_handle/helper.hpp> // must_write()
+#include <buffer_handle/helper.hpp> // character_separator_t must_write()
 #include <buffer_handle/string.hpp> // string()
 #include <buffer_handle/timezone.hpp> // universal_timezone_t
 #include <buffer_handle/token.hpp> // carriage_return() comma(), new_line() colon() space()
@@ -120,14 +120,33 @@ namespace buffer_handle_http_header
   }
 
   template<config Config, bool ListSetMaxLength>
+  void container_field_t<Config, ListSetMaxLength>::set_max_length(std::size_t length)
+  {
+    this->max_length = length;
+  }
+
+  template<config Config, bool ListSetMaxLength>
+  template<class Iterator, class Element, class Separator> inline
+  void container_field_t<Config, ListSetMaxLength>::set_max_length(const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
+  {
+    this->max_length = (std::size_t)buffer_handle::container
+      <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
+      (nullptr, begin, end, this->max_length, element, separator);
+  }
+
+  template<config Config, bool ListSetMaxLength>
   template<action Action, class Iterator, class Element, class Separator> inline
   char * container_field_t<Config, ListSetMaxLength>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
   {
     buffer = field_<Action>(buffer, field);
 
+#if 1
     if(ListSetMaxLength
        && Config == config::dynamic
        && (Action == action::size || Action == action::prepare))
+#else
+      if(Config == config::static_)
+#endif
       {
 	this->max_length = (std::size_t)buffer_handle::container
 	  <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
@@ -137,6 +156,21 @@ namespace buffer_handle_http_header
     buffer = buffer_handle::container_t<Config, align::right, ' '>:: template handle<Action, Iterator, Element, Separator>(buffer, begin, end, element, separator);
 
     return buffer;
+  }
+
+  template<config Config, bool ListSetMaxLength>
+  void long_container_field_t<Config, ListSetMaxLength>::set_max_length(std::size_t length)
+  {
+    this->max_length = length;
+  }
+
+  template<config Config, bool ListSetMaxLength>
+  template<class Iterator, class Element, class Separator> inline
+  void long_container_field_t<Config, ListSetMaxLength>::set_max_length(const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
+  {
+    this->max_length = (std::size_t)buffer_handle::container
+      <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
+      (nullptr, begin, end, this->max_length, element, separator);
   }
 
   template<config Config, bool ListSetMaxLength>
@@ -157,13 +191,6 @@ namespace buffer_handle_http_header
     buffer = buffer_handle::long_container_t<Config, align::right, ' '>:: template handle<Action, Iterator, Element, Separator>(buffer, begin, end, element, separator);
 
     return buffer;
-  }
-
-  template<char Separator>
-  template<config Config, action Action> inline
-  char * character_separator_t<Separator>::handle(char * buffer) const
-  {
-    return buffer_handle::character<Config, Action>(buffer, Separator);
   }
 
   template<typename EnumSet>
@@ -237,7 +264,7 @@ namespace buffer_handle_http_header
   {
     typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
     typedef const set_iterator_handler_t<EnumSetName> handler_type;
-    typedef const character_separator_t<','> separator_type;
+    typedef const buffer_handle::character_separator_t<','> separator_type;
 
     return container_field_t<Config, true>::template handle
       <Action, iterator_type, handler_type, separator_type>
@@ -251,7 +278,7 @@ namespace buffer_handle_http_header
   {
     typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
     typedef const set_iterator_handler_t<EnumSetName> handler_type;
-    typedef const character_separator_t<','> separator_type;
+    typedef const buffer_handle::character_separator_t<','> separator_type;
 
     return long_container_field_t<Config, true>::template handle
       <Action, iterator_type, handler_type, separator_type>

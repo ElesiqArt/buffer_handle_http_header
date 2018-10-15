@@ -5,8 +5,6 @@
 
 namespace buffer_handle_http_header
 {
-  // rfc2616 §3.1
-
   template<config Config, action Action, typename Number, class Itoa>
   char * version(char * buffer, Number major, Number minor, std::size_t & max_length, const Itoa & itoa = Itoa());
 

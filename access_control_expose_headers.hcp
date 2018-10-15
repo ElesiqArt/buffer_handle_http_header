@@ -1,10 +1,12 @@
+#include <buffer_handle/helper.hpp> // character_separator_t
+
 namespace buffer_handle_http_header
 {
   template<config Config>
   template<action Action, class Iterator, class Element> inline
   char * access_control_expose_headers_t<Config>::handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element)
   {
-    typedef const character_separator_t<','> separator_type;
+    typedef const buffer_handle::character_separator_t<','> separator_type;
 
     return container_field_t<Config, true>::template handle
       <Action, Iterator, Element, separator_type>
@@ -15,7 +17,7 @@ namespace buffer_handle_http_header
   template<action Action, class Iterator, class Element> inline
   char * long_access_control_expose_headers_t<Config>::handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element)
   {
-    typedef const character_separator_t<','> separator_type;
+    typedef const buffer_handle::character_separator_t<','> separator_type;
 
     return long_container_field_t<Config, true>::template handle
       <Action, Iterator, Element, separator_type>

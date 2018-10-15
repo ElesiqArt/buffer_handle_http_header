@@ -1,12 +1,11 @@
 #ifndef BUFFER_HANDLE_HTTP_HEADER_STATUS_HPP
 #define BUFFER_HANDLE_HTTP_HEADER_STATUS_HPP
 
+#include <buffer_handle_http_header/status_code.hpp> //status_code_t
 #include <buffer_handle_http_header/type.hpp> // action config
 
 namespace buffer_handle_http_header
 {
-  // rfc2616 §6.1
-
   template<config Config, class Code, action Action, typename Number, class Itoa>
   char * status_line(char * buffer, Number major, Number minor, status_code_t value, std::size_t & max_length, const Itoa & itoa = Itoa());
 

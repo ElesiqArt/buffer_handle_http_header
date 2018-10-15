@@ -1,6 +1,7 @@
 #ifndef BUFFER_HANDLE_HTTP_HEADER_UPGRADE_HPP
 #define BUFFER_HANDLE_HTTP_HEADER_UPGRADE_HPP
 
+#include <buffer_handle_http_header/common.hpp> // container_field_t long_container_field_t
 #include <buffer_handle_http_header/type.hpp> // action config
 
 namespace buffer_handle_http_header

@@ -63,6 +63,11 @@ namespace buffer_handle_http_header
   template<config Config, bool ListSetMaxLength>
   struct container_field_t : buffer_handle::container_t<Config, align::right, ' '>
   {
+    void set_max_length(std::size_t length);
+
+    template<class Iterator, class Element, class Separator>
+    void set_max_length(const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
+
     template<action Action, class Iterator, class Element, class Separator>
     char * handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
   };
@@ -70,15 +75,13 @@ namespace buffer_handle_http_header
   template<config Config, bool ListSetMaxLength>
   struct long_container_field_t : buffer_handle::long_container_t<Config, align::right, ' '>
   {
+    void set_max_length(std::size_t length);
+
+    template<class Iterator, class Element, class Separator>
+    void set_max_length(const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
+
     template<action Action, class Iterator, class Element, class Separator>
     char * handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
-  };
-
-  template<char Separator>
-  struct character_separator_t
-  {
-    template<config Config, action Action>
-    char * handle(char * buffer) const;
   };
 
   template<typename EnumSet>
