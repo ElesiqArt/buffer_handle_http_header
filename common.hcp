@@ -264,7 +264,7 @@ namespace buffer_handle_http_header
   {
     typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
     typedef const set_iterator_handler_t<EnumSetName> handler_type;
-    typedef const buffer_handle::character_separator_t<','> separator_type;
+    typedef const typename buffer_handle::character_separator_t<','> separator_type;
 
     return container_field_t<Config, true>::template handle
       <Action, iterator_type, handler_type, separator_type>

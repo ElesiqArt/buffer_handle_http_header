@@ -867,6 +867,13 @@ SCENARIO("Cookie", "[cookie]")
 	  }
 	}
     }
+
+  WHEN("All dynamic")
+    {
+      typedef dynamic_cookie_config current_config;
+
+      typedef set_cookie_config<current_config, cookie_config_select::name, config::static_> new_config;
+    }
 }
 
 SCENARIO("Access-Control-Allow-Credentials", "[access-control-allow-credentials]")

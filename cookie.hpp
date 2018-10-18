@@ -150,7 +150,7 @@ namespace buffer_handle_http_header
 
   public:
     template<action Action, class Itoa>
-    char * handle(char * buffer, const Itoa & itoa);
+    char * handle(char * buffer, const Itoa & itoa = Itoa());
   };
 };
 
