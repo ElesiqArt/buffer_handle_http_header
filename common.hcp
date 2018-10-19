@@ -246,9 +246,9 @@ namespace buffer_handle_http_header
 
   template<class EnumSetName>
   template<config Config, action Action> inline
-  char * set_iterator_handler_t<EnumSetName>::handle(char * buffer, const set_iterator_t<typename EnumSetName::value_type> & it) const
+  char * set_iterator_handler_t<EnumSetName>::handle(char * buffer, typename EnumSetName::value_type element) const
   {
-    const char * value = EnumSetName::get(*it);
+    const char * value = EnumSetName::get(element);
 
     if(buffer_handle::must_write<Config, Action>())
       {

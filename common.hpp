@@ -114,7 +114,7 @@ namespace buffer_handle_http_header
   struct set_iterator_handler_t
   {
     template<config Config, action Action>
-    char * handle(char * buffer, const set_iterator_t<typename EnumSetName::value_type> & it) const;
+    char * handle(char * buffer, typename EnumSetName::value_type value) const;
   };
 
   template<config Config, class EnumSetName>
