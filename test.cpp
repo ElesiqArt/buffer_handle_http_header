@@ -19,6 +19,7 @@
 #include <buffer_handle_http_header/content_length.hpp>
 #include <buffer_handle_http_header/content_location.hpp>
 #include <buffer_handle_http_header/content_md5.hpp>
+#include <buffer_handle_http_header/content_range.hpp>
 #include <buffer_handle_http_header/expires.hpp>
 
 //Response
@@ -945,6 +946,64 @@ SCENARIO("Access-Control-Allow-Credentials", "[access-control-allow-credentials]
 
 		    REQUIRE(end - begin == size);
 		    REQUIRE(std::string(begin, end) == "Access-Control-Allow-Credentials: true");
+		  }
+	      }
+	  }
+	}
+    }
+}
+
+SCENARIO("Content-Range", "[content-range]")
+{
+  buffer_handle::adapter::itoa::to_string_t itoa;
+
+  WHEN("Dynamic")
+    {
+      content_range_t<config::dynamic, config::static_, range_unit_t> content_range;
+
+      std::size_t size = (std::size_t)content_range.handle<action::size>(nullptr, 64000, 64000, 64000, range_unit::bytes, itoa);
+
+      GIVEN("Size")
+	{
+	  GIVEN_A_BUFFER(size)
+	  {
+	    THEN("Prepare")
+	      {
+		end = content_range.handle<action::prepare>(begin, 64000, 64000, 64000, range_unit::bytes, itoa);
+
+		REQUIRE(end - begin == size);
+		REQUIRE(std::string(begin, end) == "Content-Range: bytes                  ");
+
+		THEN("Write")
+		  {
+		    end = content_range.handle<action::write>(begin, 128, 255, 255, range_unit::bytes, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Content-Range: bytes       128-255/255");
+
+		    THEN("Reset")
+		      {
+			end = content_range.handle<action::reset>(begin, 28, 23, 23, range_unit::bytes, itoa);
+
+			REQUIRE(end - begin == size);
+			REQUIRE(std::string(begin, end) == "Content-Range: bytes                  ");
+		      }
+		  }
+
+		THEN("Write")
+		  {
+		    end = content_range.handle<action::write>(begin, 128, 255, 0, range_unit::bytes, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Content-Range: bytes         128-255/*");
+		  }
+
+		THEN("Write")
+		  {
+		    end = content_range.handle<action::write>(begin, 0, 0, 255, range_unit::bytes, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Content-Range: bytes             */255");
 		  }
 	      }
 	  }

@@ -1,0 +1,81 @@
+#include <buffer_handle_http_header/common.hpp> // field_()
+#include <buffer_handle/string.hpp> // string()
+#include <buffer_handle/token.hpp> // space()
+
+namespace buffer_handle_http_header
+{
+  template<config Config, config RangeUnitsConfig, class RangeUnits, action Action, class Itoa, typename I> inline
+  char * content_range(char * buffer, I first, I last, I total, typename RangeUnits::value_type units, const Itoa & itoa, std::size_t & max_length)
+  {
+    buffer = field_<Action>(buffer, "Content-Range");
+
+    buffer = buffer_handle::string<RangeUnitsConfig, Action>(buffer, RangeUnits::get(units), std::strlen(RangeUnits::get(units)));
+
+    buffer = buffer_handle::space<config::static_, Action>(buffer);
+
+    switch(Action)
+      {
+      case action::size:
+	{
+	  return buffer + buffer_handle::details::digits<I>(first)
+	    + 1
+	    + buffer_handle::details::digits<I>(last)
+	    + 1
+	    + buffer_handle::details::digits<I>(total);
+	}
+      case action::prepare:
+	{
+	  max_length = buffer_handle::details::digits<I>(first)
+	    + 1
+	    + buffer_handle::details::digits<I>(last)
+	    + 1
+	    + buffer_handle::details::digits<I>(total);
+	}
+      case action::reset:
+	{
+	  std::memset(buffer, ' ', max_length);
+
+	  break;
+	}
+      case action::write:
+	{
+	  char * local = buffer + max_length;
+
+	  if(total == 0)
+	    {
+	      --local;
+	      *local = '*';
+	    }
+	  else
+	    {
+	      local = itoa.template bwd<I>(local, total);
+	    }
+
+	  --local;
+	  *local = '/';
+
+	  if(first == 0 && last == 0)
+	    {
+	      --local;
+	      *local = '*';
+	    }
+	  else
+	    {
+	      local = itoa.template bwd<I>(local, last);
+	      --local;
+	      *local = '-';
+	      itoa.template bwd<I>(local, first);
+	    }
+	}
+      }
+
+    return buffer + max_length;
+  }
+
+  template<config Config, config RangeUnitsConfig, class RangeUnits>
+  template<action Action, class Itoa, typename I> inline
+  char * content_range_t<Config, RangeUnitsConfig, RangeUnits>::handle(char * buffer, I first, I last, I total, typename RangeUnits::value_type units, const Itoa & itoa)
+  {
+    return content_range<Config, RangeUnitsConfig, RangeUnits, Action, Itoa, I>(buffer, first, last, total, units, itoa, this->max_length);
+  }
+};
