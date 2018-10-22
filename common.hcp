@@ -40,9 +40,9 @@ namespace buffer_handle_http_header
     return buffer_handle::string<config::static_, Action>(buffer, value, std::strlen(value));
   }
 
-  template<config Config, typename I, typename MaxDigits>
+  template<config Config, typename I, typename MaxDigits, bool IsLong>
   template<action Action, class Itoa> inline
-  char * integral_number_field_t<Config, I, MaxDigits>::handle(char * buffer, const char * field, I value, const Itoa & itoa /* = Itoa() */)
+  char * integral_number_field_t<Config, I, MaxDigits, IsLong>::handle(char * buffer, const char * field, I value, const Itoa & itoa /* = Itoa() */)
   {
     buffer = field_<Action>(buffer, field);
 
@@ -51,35 +51,13 @@ namespace buffer_handle_http_header
     return buffer;
   }
 
-  template<config Config, typename I, typename MaxDigits>
-  template<action Action, class Itoa> inline
-  char * long_integral_number_field_t<Config, I, MaxDigits>::handle(char * buffer, const char * field, I value, const Itoa & itoa /* = Itoa() */)
-  {
-    buffer = field_<Config, Action>(buffer, field);
-
-    buffer = buffer_handle::long_integral_number_t<Config, align::right, ' ', I, MaxDigits>::template handle<Action, Itoa>(buffer, value, itoa);
-
-    return buffer;
-  }
-
-  template<config Config>
+  template<config Config, bool IsLong>
   template<action Action> inline
-  char * string_field_t<Config>::handle(char * buffer, const char * field, const char * value, std::size_t length)
+  char * string_field_t<Config, IsLong>::handle(char * buffer, const char * field, const char * value, std::size_t length)
   {
     buffer = field_<Action>(buffer, field);
 
     buffer = buffer_handle::string_t<Config, align::right, ' '>::template handle<Action>(buffer, value, length);
-
-    return buffer;
-  }
-
-  template<config Config>
-  template<action Action> inline
-  char * long_string_field_t<Config>::handle(char * buffer, const char * field, const char * value, std::size_t length)
-  {
-    buffer = field_<Action>(buffer, field);
-
-    buffer = buffer_handle::long_string_t<Config, align::right, ' '>::template handle<Action>(buffer, value, length);
 
     return buffer;
   }
@@ -119,24 +97,24 @@ namespace buffer_handle_http_header
     return buffer;
   }
 
-  template<config Config, bool ListSetMaxLength>
-  void container_field_t<Config, ListSetMaxLength>::set_max_length(std::size_t length)
+  template<config Config, bool ListSetMaxLength, bool IsLong>
+  void container_field_t<Config, ListSetMaxLength, IsLong>::set_max_length(std::size_t length)
   {
     this->max_length = length;
   }
 
-  template<config Config, bool ListSetMaxLength>
+  template<config Config, bool ListSetMaxLength, bool IsLong>
   template<class Iterator, class Element, class Separator> inline
-  void container_field_t<Config, ListSetMaxLength>::set_max_length(const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
+  void container_field_t<Config, ListSetMaxLength, IsLong>::set_max_length(const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
   {
     this->max_length = (std::size_t)buffer_handle::container
       <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
       (nullptr, begin, end, this->max_length, element, separator);
   }
 
-  template<config Config, bool ListSetMaxLength>
+  template<config Config, bool ListSetMaxLength, bool IsLong>
   template<action Action, class Iterator, class Element, class Separator> inline
-  char * container_field_t<Config, ListSetMaxLength>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
+  char * container_field_t<Config, ListSetMaxLength, IsLong>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
   {
     buffer = field_<Action>(buffer, field);
 
@@ -154,41 +132,6 @@ namespace buffer_handle_http_header
       }
 
     buffer = buffer_handle::container_t<Config, align::right, ' '>:: template handle<Action, Iterator, Element, Separator>(buffer, begin, end, element, separator);
-
-    return buffer;
-  }
-
-  template<config Config, bool ListSetMaxLength>
-  void long_container_field_t<Config, ListSetMaxLength>::set_max_length(std::size_t length)
-  {
-    this->max_length = length;
-  }
-
-  template<config Config, bool ListSetMaxLength>
-  template<class Iterator, class Element, class Separator> inline
-  void long_container_field_t<Config, ListSetMaxLength>::set_max_length(const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
-  {
-    this->max_length = (std::size_t)buffer_handle::container
-      <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
-      (nullptr, begin, end, this->max_length, element, separator);
-  }
-
-  template<config Config, bool ListSetMaxLength>
-  template<action Action, class Iterator, class Element, class Separator> inline
-  char * long_container_field_t<Config, ListSetMaxLength>::handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
-  {
-    buffer = field_<Action>(buffer, field);
-
-    if(ListSetMaxLength
-       && Config == config::dynamic
-       && (Action == action::size || Action == action::prepare))
-      {
-	this->max_length = (std::size_t)buffer_handle::container
-	  <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
-	  (nullptr, begin, end, this->max_length, element, separator, this->max_length);
-      }
-
-    buffer = buffer_handle::long_container_t<Config, align::right, ' '>:: template handle<Action, Iterator, Element, Separator>(buffer, begin, end, element, separator);
 
     return buffer;
   }
@@ -258,29 +201,15 @@ namespace buffer_handle_http_header
     return buffer + std::strlen(value);
   }
 
-  template<config Config, class EnumSetName>
+  template<config Config, class EnumSetName, bool IsLong>
   template<action Action> inline
-  char * set_field_t<Config, EnumSetName>::handle(char * buffer, const char * field, typename EnumSetName::value_type value)
+  char * set_field_t<Config, EnumSetName, IsLong>::handle(char * buffer, const char * field, typename EnumSetName::value_type value)
   {
     typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
     typedef const set_iterator_handler_t<EnumSetName> handler_type;
     typedef const typename buffer_handle::character_separator_t<','> separator_type;
 
-    return container_field_t<Config, true>::template handle
-      <Action, iterator_type, handler_type, separator_type>
-      (buffer, field, iterator_type(value, EnumSetName::count), iterator_type(value),
-       handler_type(), separator_type());
-  }
-
-  template<config Config, class EnumSetName>
-  template<action Action> inline
-  char * long_set_field_t<Config, EnumSetName>::handle(char * buffer, const char * field, typename EnumSetName::value_type value)
-  {
-    typedef set_iterator_t<typename EnumSetName::value_type> iterator_type;
-    typedef const set_iterator_handler_t<EnumSetName> handler_type;
-    typedef const buffer_handle::character_separator_t<','> separator_type;
-
-    return long_container_field_t<Config, true>::template handle
+    return container_field_t<Config, true, IsLong>::template handle
       <Action, iterator_type, handler_type, separator_type>
       (buffer, field, iterator_type(value, EnumSetName::count), iterator_type(value),
        handler_type(), separator_type());

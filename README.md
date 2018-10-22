@@ -253,15 +253,8 @@ char * date(char * buffer, std::tm value);
 #### Upgrade ([RFC2616 §14.42](https://tools.ietf.org/html/rfc2616#section-14.42))
 
 ```cpp
-template<config Config, bool ListSetMaxLength>
+template<config Config, bool ListSetMaxLength, bool IsLong = false>
 struct upgrade_t
-{
-  template<action Action, class Iterator, class Element, class Separator>
-  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
-};
-
-template<config Config, bool ListSetMaxLength>
-struct long_upgrade_t
 {
   template<action Action, class Iterator, class Element, class Separator>
   char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
@@ -275,15 +268,8 @@ struct long_upgrade_t
 ```cpp
 //Defined in buffer_handle_http_header/accept_ranges.hpp
 
-template<config Config, class RangeUnit>
+template<config Config, class RangeUnit, bool IsLong = false>
 struct accept_ranges_t
-{
-  template<action Action>
-  char * handle(char * buffer, typename RangeUnit::value_type value);
-};
-
-template<config Config, class RangeUnit>
-struct long_accept_ranges_t
 {
   template<action Action>
   char * handle(char * buffer, typename RangeUnit::value_type value);
@@ -297,15 +283,8 @@ The [`RangeUnit`](#range-unit) template parameter holds the range unit enumerati
 ```cpp
 //Defined in buffer_handle_http_header/age.hpp
 
-template<config Config, typename I, typename MaxDigits = uint8_t>
+template<config Config, typename I, typename MaxDigits = uint8_t, bool IsLong = false>
 struct age_t
-{
-  template<action Action, class Itoa>
-  char * handle(char * buffer, I value, const Itoa & itoa = Itoa());
-};
-
-template<config Config, typename I, typename MaxDigits = uint8_t>
-struct long_age_t
 {
   template<action Action, class Itoa>
   char * handle(char * buffer, I value, const Itoa & itoa = Itoa());
@@ -319,15 +298,8 @@ Obsoletes [RFC 2616 §14.30](https://tools.ietf.org/html/rfc2616#section-14.30).
 ```cpp
 //Defined in buffer_handle_http_header/location.hpp
 
-template<config Config>
+template<config Config, bool IsLong = false>
 struct location_t
-{
-  template<action Action>
-  char * handle(char * buffer, const char * value, std::size_t length);
-};
-
-template<config Config>
-struct long_location_t
 {
   template<action Action>
   char * handle(char * buffer, const char * value, std::size_t length);
@@ -406,15 +378,8 @@ struct cookie_t
 ```cpp
 //Defined in buffer_handle_http_header/allow.hpp
 
-template<config Config, class Method>
+template<config Config, class Method, bool IsLong = false>
 struct allow_t
-{
-  template<action Action>
-  char * handle(char * buffer, typename Method::value_type value);
-};
-
-template<config Config, class Method>
-struct long_allow_t
 {
   template<action Action>
   char * handle(char * buffer, typename Method::value_type value);
@@ -428,15 +393,8 @@ The [`Method`](#method) template parameter holds the method enumeration type and
 ```cpp
 //Defined in buffer_handle_http_header/content_encoding.hpp
 
-template<config Config, class ContentCoding>
+template<config Config, class ContentCoding, bool IsLong = false>
 struct content_encoding_t
-{
-  template<action Action>
-  char * handle(char * buffer, typename ContentCoding::value_type value);
-};
-
-template<config Config, class ContentCoding>
-struct long_content_encoding_t
 {
   template<action Action>
   char * handle(char * buffer, typename ContentCoding::value_type value);
@@ -450,15 +408,8 @@ The [`ContentCoding`](#content-coding) template parameter holds the content codi
 ```cpp
 //Defined in buffer_handle_http_header/content_length.hpp
 
-template<config Config>
+template<config Config, bool IsLong = false>
 struct content_length_t
-{
-  template<action Action, class Itoa>
-  char * handle(char * buffer, std::size_t value, const Itoa & itoa = Itoa());
-};
-
-template<config Config>
-struct long_content_length_t
 {
   template<action Action, class Itoa>
   char * handle(char * buffer, std::size_t value, const Itoa & itoa = Itoa());
@@ -470,15 +421,8 @@ struct long_content_length_t
 ```cpp
 //Defined in buffer_handle_http_header/content_location.hpp
 
-template<config Config>
+template<config Config, bool IsLong = false>
 struct content_location_t
-{
-  template<action Action>
-  char * handle(char * buffer, const char * value, std::size_t length);
-};
-
-template<config Config>
-struct long_content_location_t
 {
   template<action Action>
   char * handle(char * buffer, const char * value, std::size_t length);
@@ -536,15 +480,8 @@ char * access_control_allow_credentials(char * buffer, bool value);
 #### Access-Control-Allow-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-allow-headers-response-header))
 
 ```cpp
-template<config Config>
-struct access_control_allow_headers_t : container_field_t<Config, true>
-{
-  template<action Action, class Iterator, class Element>
-  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
-};
-
-template<config Config>
-struct long_access_control_allow_headers_t : long_container_field_t<Config, true>
+template<config Config, bool IsLong = false>
+struct access_control_allow_headers_t
 {
   template<action Action, class Iterator, class Element>
   char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
@@ -554,15 +491,8 @@ struct long_access_control_allow_headers_t : long_container_field_t<Config, true
 #### Access-Control-Allow-Methods ([W3C](https://www.w3.org/TR/cors/#access-control-allow-methods-response-header))
 
 ```cpp
-template<config Config, class Method>
+template<config Config, class Method, bool IsLong = false>
 struct access_control_allow_methods_t
-{
-  template<action Action>
-  char * handle(char * buffer, typename Method::value_type value);
-};
-
-template<config Config, class Method>
-struct long_access_control_allow_methods_t
 {
   template<action Action>
   char * handle(char * buffer, typename Method::value_type value);
@@ -572,15 +502,8 @@ struct long_access_control_allow_methods_t
 #### Access-Control-Allow-Origin ([W3C](https://www.w3.org/TR/cors/#access-control-allow-origin-response-header))
 
 ```cpp
-template<config Config>
+template<config Config, bool IsLong = false>
 struct access_control_allow_origin_t
-{
-  template<action Action>
-  char * handle(char * bufer, const char * value, std::size_t length);
-};
-
-template<config Config>
-struct long_access_control_allow_origin_t
 {
   template<action Action>
   char * handle(char * bufer, const char * value, std::size_t length);
@@ -590,15 +513,8 @@ struct long_access_control_allow_origin_t
 #### Access-Control-Expose-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-expose-headers-response-header))
 
 ```cpp
-template<config Config>
+template<config Config, bool IsLong = false>
 struct access_control_expose_headers_t
-{
-  template<action Action, class Iterator, class Element>
-  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
-};
-
-template<config Config>
-struct long_access_control_expose_headers_t
 {
   template<action Action, class Iterator, class Element>
   char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
@@ -610,15 +526,8 @@ struct long_access_control_expose_headers_t
 ```cpp
 //Defined in buffer_handle_http_header/access_control_max_age.hpp
 
-template<config Config, typename I, typename MaxDigits = uint8_t>
+template<config Config, typename I, typename MaxDigits = uint8_t, bool IsLong = false>
 struct access_control_max_age_t
-{
-  template<action Action, class Itoa>
-  char * handle(char * buffer, I value, const Itoa & itoa = Itoa());
-};
-
-template<config Config, typename I, typename MaxDigits = uint8_t>
-struct long_access_control_max_age_t
 {
   template<action Action, class Itoa>
   char * handle(char * buffer, I value, const Itoa & itoa = Itoa());

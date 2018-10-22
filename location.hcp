@@ -1,16 +1,9 @@
 namespace buffer_handle_http_header
 {
-  template<config Config>
+  template<config Config, bool IsLong>
   template<action Action> inline
-  char * location_t<Config>::handle(char * buffer, const char * value, std::size_t length)
+  char * location_t<Config, IsLong>::handle(char * buffer, const char * value, std::size_t length)
   {
-    return string_field_t<Config>::template handle<Action>(buffer, "Location", value, length);
-  }
-
-  template<config Config>
-  template<action Action> inline
-  char * long_location_t<Config>::handle(char * buffer, const char * value, std::size_t length)
-  {
-    return long_string_field_t<Config>::template handle<Action>(buffer, "Location", value, length);
+    return string_field_t<Config, IsLong>::template handle<Action>(buffer, "Location", value, length);
   }
 };

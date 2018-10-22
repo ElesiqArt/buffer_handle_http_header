@@ -1,16 +1,9 @@
 namespace buffer_handle_http_header
 {
-  template<config Config, bool ListSetMaxLength>
+  template<config Config, bool ListSetMaxLength, bool IsLong>
   template<action Action, class Iterator, class Element, class Separator> inline
-  char * upgrade_t<Config, ListSetMaxLength>::handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
+  char * upgrade_t<Config, ListSetMaxLength, IsLong>::handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
   {
-    return container_field_t<Config, ListSetMaxLength>::template handle<Action, Iterator, Element, Separator>(buffer, "Upgrade", begin, end, element, separator);
-  }
-
-  template<config Config, bool ListSetMaxLength>
-  template<action Action, class Iterator, class Element, class Separator> inline
-  char * long_upgrade_t<Config, ListSetMaxLength>::handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element, Separator & separator)
-  {
-    return long_container_field_t<Config, ListSetMaxLength>::template handle<Action, Iterator, Element, Separator>(buffer, "Upgrade", begin, end, element, separator);
+    return container_field_t<Config, ListSetMaxLength, IsLong>::template handle<Action, Iterator, Element, Separator>(buffer, "Upgrade", begin, end, element, separator);
   }
 };

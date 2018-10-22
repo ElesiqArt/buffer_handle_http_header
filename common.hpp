@@ -3,10 +3,10 @@
 
 #include <buffer_handle_http_header/type.hpp> // action align config
 
-#include <buffer_handle/container.hpp> // container_t long_container_t
+#include <buffer_handle/container.hpp> // container_t
 #include <buffer_handle/date.hpp> // rfc1123::date
-#include <buffer_handle/number.hpp> // integral_number_t long_integral_number_t
-#include <buffer_handle/string.hpp> // string_t long_string_t
+#include <buffer_handle/number.hpp> // integral_number_t
+#include <buffer_handle/string.hpp> // string_t
 
 namespace buffer_handle_http_header
 {
@@ -22,29 +22,15 @@ namespace buffer_handle_http_header
   template<action Action>
   char * attribute(char * buffer, const char * value);
 
-  template<config Config, typename I, typename MaxDigits = uint8_t>
-  struct integral_number_field_t : public buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits>
+  template<config Config, typename I, typename MaxDigits = uint8_t, bool IsLong = false>
+  struct integral_number_field_t : public buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits, IsLong>
   {
     template<action Action, class Itoa>
     char * handle(char * buffer, const char * field, I value, const Itoa & itoa = Itoa());
   };
 
-  template<config Config, typename I, typename MaxDigits = uint8_t>
-  struct long_integral_number_field_t : public buffer_handle::long_integral_number_t<Config, align::right, ' ', I, MaxDigits>
-  {
-    template<action Action, class Itoa>
-    char * handle(char * buffer, const char * field, I value, const Itoa & itoa = Itoa());
-  };
-
-  template<config Config>
-  struct string_field_t : buffer_handle::string_t<Config, align::right, ' '>
-  {
-    template<action Action>
-    char * handle(char * buffer, const char * field, const char * value, std::size_t length);
-  };
-
-  template<config Config>
-  struct long_string_field_t : buffer_handle::long_string_t<Config, align::right, ' '>
+  template<config Config, bool IsLong = false>
+  struct string_field_t : buffer_handle::string_t<Config, align::right, ' ', IsLong>
   {
     template<action Action>
     char * handle(char * buffer, const char * field, const char * value, std::size_t length);
@@ -60,20 +46,8 @@ namespace buffer_handle_http_header
   template<config Config, action Action>
   char * date(char * buffer, const char * field, std::tm value);
 
-  template<config Config, bool ListSetMaxLength>
-  struct container_field_t : buffer_handle::container_t<Config, align::right, ' '>
-  {
-    void set_max_length(std::size_t length);
-
-    template<class Iterator, class Element, class Separator>
-    void set_max_length(const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
-
-    template<action Action, class Iterator, class Element, class Separator>
-    char * handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
-  };
-
-  template<config Config, bool ListSetMaxLength>
-  struct long_container_field_t : buffer_handle::long_container_t<Config, align::right, ' '>
+  template<config Config, bool ListSetMaxLength, bool IsLong = false>
+  struct container_field_t : buffer_handle::container_t<Config, align::right, ' ', IsLong>
   {
     void set_max_length(std::size_t length);
 
@@ -117,15 +91,8 @@ namespace buffer_handle_http_header
     char * handle(char * buffer, typename EnumSetName::value_type value) const;
   };
 
-  template<config Config, class EnumSetName>
-  struct set_field_t : container_field_t<Config, true>
-  {
-    template<action Action>
-    char * handle(char * buffer, const char * field, typename EnumSetName::value_type value);
-  };
-
-  template<config Config, class EnumSetName>
-  struct long_set_field_t : long_container_field_t<Config, true>
+  template<config Config, class EnumSetName, bool IsLong = false>
+  struct set_field_t : container_field_t<Config, true, IsLong>
   {
     template<action Action>
     char * handle(char * buffer, const char * field, typename EnumSetName::value_type value);

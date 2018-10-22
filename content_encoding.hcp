@@ -1,16 +1,9 @@
 namespace buffer_handle_http_header
 {
-  template<config Config, class ContentCoding>
+  template<config Config, class ContentCoding, bool IsLong>
   template<action Action> inline
-  char * content_encoding_t<Config, ContentCoding>::handle(char * buffer, typename ContentCoding::value_type value)
+  char * content_encoding_t<Config, ContentCoding, IsLong>::handle(char * buffer, typename ContentCoding::value_type value)
   {
-    return set_field_t<Config, ContentCoding>::template handle<Action>(buffer, "Content-Encoding", value);
-  }
-
-  template<config Config, class ContentCoding>
-  template<action Action> inline
-  char * long_content_encoding_t<Config, ContentCoding>::handle(char * buffer, typename ContentCoding::value_type value)
-  {
-    return long_set_field_t<Config, ContentCoding>::template handle<Action>(buffer, "Content-Encoding", value);
+    return set_field_t<Config, ContentCoding, IsLong>::template handle<Action>(buffer, "Content-Encoding", value);
   }
 };

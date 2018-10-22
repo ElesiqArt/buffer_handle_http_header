@@ -1,16 +1,9 @@
 namespace buffer_handle_http_header
 {
-  template<config Config>
+  template<config Config, bool IsLong>
   template<action Action, class Itoa> inline
-  char * content_length_t<Config>::handle(char * buffer, std::size_t value, const Itoa & itoa /* = Itoa() */)
+  char * content_length_t<Config, IsLong>::handle(char * buffer, std::size_t value, const Itoa & itoa /* = Itoa() */)
   {
-    return integral_number_field_t<Config, std::size_t, uint8_t>::template handle<Action, Itoa>(buffer, "Content-Length", value, itoa);
-  }
-
-  template<config Config>
-  template<action Action, class Itoa> inline
-  char * long_content_length_t<Config>::handle(char * buffer, std::size_t value, const Itoa & itoa /* = Itoa() */)
-  {
-    return long_integral_number_field_t<Config, std::size_t, uint8_t>::template handle<Action, Itoa>(buffer, "Content-Length", value, itoa);
+    return integral_number_field_t<Config, std::size_t, uint8_t, IsLong>::template handle<Action, Itoa>(buffer, "Content-Length", value, itoa);
   }
 };

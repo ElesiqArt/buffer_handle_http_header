@@ -1,16 +1,9 @@
 namespace buffer_handle_http_header
 {
-  template<config Config, class Method>
+  template<config Config, class Method, bool IsLong>
   template<action Action> inline
-  char * allow_t<Config, Method>::handle(char * buffer, typename Method::value_type value)
+  char * allow_t<Config, Method, IsLong>::handle(char * buffer, typename Method::value_type value)
   {
-    return set_field_t<Config, Method>::template handle<Action>(buffer, "Allow", value);
-  }
-
-  template<config Config, class Method>
-  template<action Action> inline
-  char * long_allow_t<Config, Method>::handle(char * buffer, typename Method::value_type value)
-  {
-    return long_set_field_t<Config, Method>::template handle<Action>(buffer, "Allow", value);
+    return set_field_t<Config, Method, IsLong>::template handle<Action>(buffer, "Allow", value);
   }
 };
