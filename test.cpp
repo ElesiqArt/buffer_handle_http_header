@@ -2,6 +2,8 @@
 
 #include <catch2/catch.hpp>
 
+#include <buffer_handle/test.hpp>
+
 #include <buffer_handle_http_header/type.hpp>
 
 #include <buffer_handle_http_header/common.hpp>
@@ -17,6 +19,7 @@
 #include <buffer_handle_http_header/allow.hpp>
 #include <buffer_handle_http_header/content_encoding.hpp>
 #include <buffer_handle_http_header/content_length.hpp>
+#include <buffer_handle_http_header/content_language.hpp>
 #include <buffer_handle_http_header/content_location.hpp>
 #include <buffer_handle_http_header/content_md5.hpp>
 #include <buffer_handle_http_header/content_range.hpp>
@@ -45,12 +48,6 @@
 #include <buffer_handle/adapter/itoa/to_string.hpp> // to_string_t
 
 using namespace buffer_handle_http_header;
-
-#define GIVEN_A_BUFFER(size)			\
-  char buffer[size] = {0};			\
-  char * begin = buffer;			\
-  char * end = buffer;				\
-  GIVEN("A buffer")
 
 SCENARIO("Status code", "[status_code]")
 {
@@ -90,7 +87,7 @@ SCENARIO("Status code", "[status_code]")
 		end = reason_phrase<config::dynamic, rfc2616_t, action::prepare>(begin, success::ok::value);
 
 		REQUIRE(end - begin == size);
-		REQUIRE(std::string(begin, end) == std::string(rfc2616_t::max_reason_length - std::strlen(success::ok::reason), ' ') + success::ok::reason);
+		REQUIRE(std::string(begin, end) == std::string(rfc2616_t::max_reason_length, ' '));
 
 		THEN("Write")
 		  {
@@ -225,7 +222,7 @@ SCENARIO("Status line", "[status-line]")
 	      {
 		end = status_line.handle<action::prepare>(begin, 1, 1, status_code::success::ok::value, itoa);
 
-		REQUIRE(std::string(begin, end) == "HTTP/1.1 200                              OK");
+		REQUIRE(std::string(begin, end) == "HTTP/1.1                                    ");
 	      }
 	  }
 	}
@@ -277,7 +274,7 @@ SCENARIO("Common", "[common]")
 		    end = number.handle<action::prepare>(begin, field, 42, itoa);
 
 		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == field_ + "42");
+		    REQUIRE(std::string(begin, end) == field_ + "  ");
 
 		    THEN("Write")
 		      {
@@ -333,7 +330,7 @@ SCENARIO("Common", "[common]")
 		    end = string.handle<action::prepare>(begin, field, long_value, std::strlen(long_value));
 
 		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == field_ + long_value);
+		    REQUIRE(std::string(begin, end) == field_ + std::string(std::strlen(long_value), ' '));
 
 		    THEN("Write")
 		      {
@@ -438,7 +435,7 @@ SCENARIO("Allow", "[allow]")
 		end = allow.handle<action::prepare>(begin, method::GET | method::POST | method::PUT | method::CONNECT);
 
 		REQUIRE(end - begin == size);
-		REQUIRE(std::string(begin, end) == "Allow: GET,POST,PUT,CONNECT");
+		REQUIRE(std::string(begin, end) == "Allow:                     ");
 
 		THEN("Write")
 		  {

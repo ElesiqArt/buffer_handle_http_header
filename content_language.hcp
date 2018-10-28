@@ -1,0 +1,13 @@
+#include <buffer_handle/helper.hpp> // character_and_space_separator_t
+
+namespace buffer_handle_http_header
+{
+  template<config Config, bool ListSetMaxLength, bool IsLong>
+  template<action Action, class Iterator, class Element, class Separator> inline
+  char * content_language_t<Config, ListSetMaxLength, IsLong>::handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element)
+  {
+    typedef buffer_handle::character_and_space_separator_t<','> separator_type;
+
+    return container_field_t<Config, ListSetMaxLength, IsLong>::template handle<Action, Iterator, Element, separator_type>(buffer, "Content-Language", begin, end, element, separator_type());
+  }
+};

@@ -6,7 +6,7 @@
 
 namespace buffer_handle_http_header
 {
-  template<config Config, bool IsLong>
+  template<config Config, bool IsLong = false>
   struct content_length_t : integral_number_field_t<Config, std::size_t, uint8_t, IsLong>
   {
     template<action Action, class Itoa>

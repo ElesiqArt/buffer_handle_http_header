@@ -403,6 +403,17 @@ struct content_encoding_t
 
 The [`ContentCoding`](#content-coding) template parameter holds the content coding enumeration type and is used to convert a content coding to its string form.
 
+#### Content-Language ([RFC 2616 §14.12](https://tools.ietf.org/html/rfc2616#section-14.12))
+
+```cpp
+template<config Config, bool ListSetMaxLength, bool IsLong = false>
+struct content_language_t : public container_field_t<Config, ListSetMaxLength, IsLong>
+{
+  template<action Action, class Iterator, class Element, class Separator>
+  char * handle(char * buffer, const Iterator & begin, const Iterator & end, Element & element);
+};
+```
+
 #### Content-Length ([RFC 2616 §14.13](https://tools.ietf.org/html/rfc2616#section-14.13))
 
 ```cpp

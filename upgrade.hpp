@@ -6,7 +6,7 @@
 
 namespace buffer_handle_http_header
 {
-  template<config Config, bool ListSetMaxLength, bool IsLong>
+  template<config Config, bool ListSetMaxLength, bool IsLong = false>
   struct upgrade_t : public container_field_t<Config, ListSetMaxLength, IsLong>
   {
     template<action Action, class Iterator, class Element, class Separator>
