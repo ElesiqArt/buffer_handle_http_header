@@ -1,0 +1,9 @@
+namespace buffer_handle_http_header
+{
+  template<config Config, bool IsLong>
+  template<action Action> inline
+  char * content_type_t<Config, IsLong>::handle(char * buffer, const char * value, std::size_t length)
+  {
+    return string_field_t<Config, IsLong>::template handle<Action>(buffer, "Content-Type", value, length);
+  }
+};
