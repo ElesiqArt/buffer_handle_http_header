@@ -6,7 +6,10 @@
 
 namespace buffer_handle_http_header
 {
-  template<config Config, class Code, action Action, typename Number, class Itoa>
+  template<config StatusLineConfig, class Code, action Action, typename Number, class Itoa>
+  char * status_line(char * buffer, Number major, Number minor, status_code_t value, const Itoa & itoa = Itoa());
+
+  template<config StatusLineConfig, class Code, action Action, typename Number, class Itoa>
   char * status_line(char * buffer, Number major, Number minor, status_code_t value, std::size_t & max_length, const Itoa & itoa = Itoa());
 
   template<config Config, class Code, action Action, typename Number, class Itoa>

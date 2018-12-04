@@ -5,20 +5,36 @@
 
 namespace buffer_handle_http_header
 {
-  template<config Config, class Code, action Action, typename Number, class Itoa>
-  char * status_line(char * buffer, Number major, Number minor, status_code_t value, std::size_t & max_length, const Itoa & itoa /* = Itoa() */)
+  namespace details
   {
-    buffer = version<Config, Action, Number, Itoa>(buffer, major, minor, max_length, itoa);
+    template<config VersionConfig, config StatusCodeConfig, class Code, action Action, typename Number, class Itoa>
+    char * status_line(char * buffer, Number major, Number minor, status_code_t value, std::size_t & max_length, const Itoa & itoa /* = Itoa() */)
+    {
+      buffer = version<VersionConfig, Action, Number, Itoa>(buffer, major, minor, max_length, itoa);
 
-    buffer = buffer_handle::space<Config, Action>(buffer);
+      buffer = buffer_handle::space<VersionConfig, Action>(buffer);
 
-    buffer = status_code_<Config, Code, Action, Itoa>(buffer, value, itoa);
+      buffer = status_code_<StatusCodeConfig, Code, Action, Itoa>(buffer, value, itoa);
 
-    buffer = buffer_handle::space<Config, Action>(buffer);
+      buffer = buffer_handle::space<StatusCodeConfig, Action>(buffer);
 
-    buffer = reason_phrase<Config, Code, Action>(buffer, value);
+      buffer = reason_phrase<StatusCodeConfig, Code, Action>(buffer, value);
 
-    return buffer;
+      return buffer;
+    }
+  };
+
+  template<config StatusLineConfig, class Code, action Action, typename Number, class Itoa>
+  char * status_line(char * buffer, Number major, Number minor, status_code_t value, const Itoa & itoa)
+  {
+    std::size_t dummy_max_length;
+    return details::status_line<config::static_, StatusLineConfig, Code, Action, Number, Itoa>(buffer, major, minor, value, dummy_max_length, itoa);
+  }
+
+  template<config StatusLineConfig, class Code, action Action, typename Number, class Itoa>
+  char * status_line(char * buffer, Number major, Number minor, status_code_t value, std::size_t & max_length, const Itoa & itoa)
+  {
+    return details::status_line<config::dynamic, StatusLineConfig, Code, Action, Number, Itoa>(buffer, major, minor, value, max_length, itoa);
   }
 
   template<config Config, class Code, action Action, typename Number, class Itoa>

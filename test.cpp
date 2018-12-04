@@ -190,21 +190,52 @@ SCENARIO("Status line", "[status-line]")
   buffer_handle::adapter::itoa::to_string_t itoa;
   std::size_t max_length = 0;
 
-  WHEN("Static")
+  WHEN("Static version")
     {
-      std::size_t size = (std::size_t)status_line<config::static_, status_code::rfc2616_t, action::size>(nullptr, 1, 1, status_code::success::ok::value, max_length, itoa);
-
-      GIVEN("Size")
+      WHEN("Static status code")
 	{
-	  GIVEN_A_BUFFER(size)
-	  {
-	    THEN("Prepare")
-	      {
-		end = status_line<config::static_, status_code::rfc2616_t, action::prepare>(begin, 1, 1, status_code::success::ok::value, max_length, itoa);
+	  std::size_t size = (std::size_t)status_line<config::static_, status_code::rfc2616_t, action::size>(nullptr, 1, 1, status_code::success::ok::value, itoa);
 
-		REQUIRE(std::string(begin, end) == "HTTP/1.1 200 OK");
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = status_line<config::static_, status_code::rfc2616_t, action::prepare>(begin, 1, 1, status_code::success::ok::value, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "HTTP/1.1 200 OK");
+		  }
 	      }
-	  }
+	    }
+	}
+
+      WHEN("Dynamic status code")
+	{
+	  std::size_t size = (std::size_t)status_line<config::dynamic, status_code::rfc2616_t, action::size>(nullptr, 1, 1, status_code::success::ok::value, itoa);
+
+	  GIVEN("Size")
+	    {
+	      GIVEN_A_BUFFER(size)
+	      {
+		THEN("Prepare")
+		  {
+		    end = status_line<config::dynamic, status_code::rfc2616_t, action::prepare>(begin, 1, 1, status_code::success::ok::value, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "HTTP/1.1                                    ");
+
+		    THEN("Write")
+		      {
+			end = status_line<config::dynamic, status_code::rfc2616_t, action::write>(begin, 1, 1, status_code::success::ok::value, itoa);
+
+			REQUIRE(end - begin == size);
+			REQUIRE(std::string(begin, end) == "HTTP/1.1 200                              OK");
+		      }
+		  }
+	      }
+	    }
 	}
     }
 
@@ -222,7 +253,16 @@ SCENARIO("Status line", "[status-line]")
 	      {
 		end = status_line.handle<action::prepare>(begin, 1, 1, status_code::success::ok::value, itoa);
 
+		REQUIRE(end - begin == size);
 		REQUIRE(std::string(begin, end) == "HTTP/1.1                                    ");
+
+		THEN("Write")
+		  {
+		    end = status_line.handle<action::write>(begin, 1, 1, status_code::success::ok::value, itoa);
+
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "HTTP/1.1 200                              OK");
+		  }
 	      }
 	  }
 	}
