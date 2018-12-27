@@ -1,4 +1,5 @@
 #include <cstring> // memcpy() memset()
+#include <cstddef>
 
 #include <buffer_handle/date.hpp> // rfc1123::date()
 #include <buffer_handle/helper.hpp> // must_write()
@@ -9,96 +10,128 @@
 
 namespace buffer_handle_http_header
 {
-  namespace details
+  namespace cookie
   {
-    // For 'Secure' and 'HttpOnly'
-    // rfc 6265 §5.2.5 and §5.2.6
-    // If unset, write spaces, if set write value
-    template<config Config, action Action> inline
-    char * handle_bool(char * buffer, const char * attribute, std::size_t attribute_length, bool value)
+    namespace details
     {
-      if(Config == config::static_)
-	{
-	  if(value)
-	    {
-	      buffer = buffer_handle::semicolon<Config, Action>(buffer);
-	      buffer = buffer_handle::space<Config, Action>(buffer);
-
-	      if(Action == action::prepare)
-		{
-		  buffer_handle::string<Config, Action>(buffer, attribute, attribute_length);
-		}
-
-	      buffer += attribute_length;
-	    }
-	}
-      else if(Config == config::dynamic)
-	{
-	  buffer = buffer_handle::semicolon<Config, Action>(buffer);
-	  buffer = buffer_handle::space<Config, Action>(buffer);
-
-	  switch(Action)
-	    {
-	    case action::prepare:
-	    case action::reset:
+      // For 'Secure' and 'HttpOnly'
+      // rfc 6265 §5.2.5 and §5.2.6
+      // If unset, write spaces, if set write value
+      template<config Config, action Action> inline
+      char * handle_bool(char * buffer, const char * attribute, std::size_t attribute_length, bool value)
+      {
+	if(Config == config::static_)
+	  {
+	    if(value)
 	      {
-		std::memset(buffer, ' ', attribute_length);
+		buffer = buffer_handle::semicolon<Config, Action>(buffer);
+		buffer = buffer_handle::space<Config, Action>(buffer);
 
-		break;
-	      }
-	    case action::write:
-	      {
-		if(value)
+		if(Action == action::prepare)
 		  {
-		    std::memcpy(buffer, attribute, attribute_length);
+		    buffer_handle::string<Config, Action>(buffer, attribute, attribute_length);
 		  }
+
+		buffer += attribute_length;
 	      }
-	    }
+	  }
+	else if(Config == config::dynamic)
+	  {
+	    buffer = buffer_handle::semicolon<Config, Action>(buffer);
+	    buffer = buffer_handle::space<Config, Action>(buffer);
 
-	  buffer += attribute_length;
-	}
+	    switch(Action)
+	      {
+	      case action::prepare:
+	      case action::reset:
+		{
+		  std::memset(buffer, ' ', attribute_length);
 
-      return buffer;
-    }
+		  break;
+		}
+	      case action::write:
+		{
+		  if(value)
+		    {
+		      std::memcpy(buffer, attribute, attribute_length);
+		    }
+		}
+	      }
 
-    template<config Config, action Action> inline
-    char * handle_bool(char * buffer, const char * attribute, bool value)
-    {
-      return handle_bool<Config, Action>(buffer, attribute, std::strlen(attribute), value);
-    }
+	    buffer += attribute_length;
+	  }
 
-    // For 'Domain' and 'Path'
-    // rfc 6265 §5.2.3 and §5.2.4
-    // Write a ';' delimiter at the end of the content
-    template<config Config, action Action> inline
-    char * handle_string(char * buffer, const char * attribute, std::size_t attribute_length, const char * value, std::size_t length, std::size_t max_length)
-    {
-      buffer = buffer_handle::semicolon<Config, Action>(buffer);
-      buffer = buffer_handle::space<Config, Action>(buffer);
-      buffer = buffer_handle::string<Config, Action>(buffer, attribute, attribute_length);
-      buffer = buffer_handle::equal<Config, Action>(buffer);
+	return buffer;
+      }
 
-      buffer = buffer_handle::string<Config, align::left, ' ', Action>(buffer, value, length, max_length);
+      template<config Config, action Action> inline
+      char * handle_bool(char * buffer, const char * attribute, bool value)
+      {
+	return handle_bool<Config, Action>(buffer, attribute, std::strlen(attribute), value);
+      }
 
-      if(length < max_length)
-	{
-	  buffer_handle::semicolon<Config, Action>(buffer - (max_length - length));
-	}
+      // For 'Domain' and 'Path'
+      // rfc 6265 §5.2.3 and §5.2.4
+      // Write a ';' delimiter at the end of the content
+      template<config Config, action Action, typename T> inline
+      char * handle_string_(char * buffer, const char * attribute, std::size_t attribute_length, T value, std::size_t length, std::size_t max_length)
+      {
+	buffer = buffer_handle::semicolon<Config, Action>(buffer);
+	buffer = buffer_handle::space<Config, Action>(buffer);
+	buffer = buffer_handle::string<Config, Action>(buffer, attribute, attribute_length);
+	buffer = buffer_handle::equal<Config, Action>(buffer);
 
-      return buffer;
-    }
+	buffer = buffer_handle::string<Config, align::left, ' ', Action>(buffer, value, length, max_length);
 
-    template<config Config, action Action> inline
-    char * handle_string(char * buffer, const char * attribute, const char * value, std::size_t length, std::size_t & max_length)
-    {
-      return handle_string<Config, Action>(buffer, attribute, std::strlen(attribute), value, length, max_length);
-    }
+	if(length < max_length)
+	  {
+	    buffer_handle::semicolon<Config, Action>(buffer - (max_length - length));
+	  }
 
-    // rfc 6265 §5.2 1. states:
+	return buffer;
+      }
+
+      template<config Config, action Action>
+      char * handle_string(char * buffer, const char * attribute, std::size_t attribute_length, const char * value, std::size_t length, std::size_t max_length)
+      {
+	return handle_string_<Config, Action, const char *>(buffer, attribute, attribute_length, value, length, max_length);
+      }
+
+      template<config Config, action Action>
+      char * handle_string(char * buffer, const char * attribute, std::size_t attribute_length, char ** value, std::size_t length, std::size_t max_length)
+      {
+	return handle_string_<Config, Action, char **>(buffer, attribute, attribute_length, value, length, max_length);
+      }
+
+      template<config Config, action Action>
+      char * handle_string(char * buffer, const char * attribute, std::size_t attribute_length, std::nullptr_t value, std::size_t length, std::size_t max_length)
+      {
+	return handle_string_<Config, Action, char *>(buffer, attribute, attribute_length, (char *)value, length, max_length);
+      }
+
+      template<config Config, action Action> inline
+      char * handle_string(char * buffer, const char * attribute, const char * value, std::size_t length, std::size_t & max_length)
+      {
+	return handle_string<Config, Action>(buffer, attribute, std::strlen(attribute), value, length, max_length);
+      }
+
+      template<config Config, action Action, typename T> inline
+      char * name(char * buffer, T name, std::size_t name_length, std::size_t max_name_length)
+      {
+	buffer = field_<Action>(buffer, "Set-Cookie");
+
+	buffer = buffer_handle::string<Config, align::right, ' ', Action>(buffer, name, name_length, max_name_length);
+
+	buffer = buffer_handle::equal<config::static_, Action>(buffer);
+
+	return buffer;
+      }
+
+	  // rfc 6265 §5.2 1. states:
     // 'Remove any leading or trailing WSP characters from the name string and the value string'
     // Thus pad left because 'name string' is padded right (locality).
-    template<config Config, bool IsQuoted, action Action> inline
-    char * value_string(char * buffer, const char * value, std::size_t length, std::size_t max_length)
+    template<config Config, bool IsQuoted, action Action, typename T> inline
+    char * value(char * buffer, T value, std::size_t length, std::size_t max_length)
     {
       if(IsQuoted)
 	{
@@ -135,12 +168,49 @@ namespace buffer_handle_http_header
 	  return buffer_handle::string<Config, align::left, ' ', Action>(buffer, value, length, max_length);
 	}
     }
+    };
+
+    template<config Config, action Action> inline
+    char * name(char * buffer, const char * name, std::size_t name_length, std::size_t max_name_length)
+    {
+      return details::name<Config, Action>(buffer, name, name_length, max_name_length);
+    }
+
+    template<config Config, action Action> inline
+    char * name(char * buffer, char ** name, std::size_t name_length, std::size_t max_name_length)
+    {
+      return details::name<Config, Action>(buffer, name, name_length, max_name_length);
+    }
+
+    template<config Config, action Action> inline
+    char * name(char * buffer, std::nullptr_t name, std::size_t name_length, std::size_t max_name_length)
+    {
+      return details::name<Config, Action>(buffer, (char *)name, name_length, max_name_length);
+    }
+
+    template<config Config, bool IsQuoted, action Action> inline
+    char * value(char * buffer, const char * value, std::size_t length, std::size_t max_length)
+    {
+      return details::value<Config, IsQuoted, Action>(buffer, value, length, max_length);
+    }
+
+    template<config Config, bool IsQuoted, action Action> inline
+    char * value(char * buffer, char ** value, std::size_t length, std::size_t max_length)
+    {
+      return details::value<Config, IsQuoted, Action>(buffer, value, length, max_length);
+    }
+
+    template<config Config, bool IsQuoted, action Action> inline
+    char * value(char * buffer, std::nullptr_t value, std::size_t length, std::size_t max_length)
+    {
+      return details::value<Config, IsQuoted, Action>(buffer, (char *)value, length, max_length);
+    }
 
     // rfc 6265 §5.2.1 states:
     // 'If the attribute-value failed to parse as a cookie date, ignore the cookie-av.'
     // Thus 'Expires=                             ;' will force the field to be ignored.
     template<config Config, action Action> inline
-    char * expires(char * buffer, bool has, std::tm at)
+    char * expires(char * buffer, std::tm * at)
     {
       buffer = buffer_handle::semicolon<config::static_, Action>(buffer);
       buffer = buffer_handle::space<config::static_, Action>(buffer);
@@ -149,14 +219,14 @@ namespace buffer_handle_http_header
 
       typedef buffer_handle::universal_timezone_t<config::static_, align::right, ' '> timezone_type;
 
-      std::size_t length = (std::size_t)buffer_handle::rfc1123::date<Config, true, true, timezone_type, action::size>(nullptr, at, timezone_type(buffer_handle::universal_timezone::GMT));
+      std::size_t length = (std::size_t)buffer_handle::rfc1123::date<Config, true, true, timezone_type, action::size>(nullptr, std::tm(), timezone_type(buffer_handle::universal_timezone::GMT));
 
       if(Action != action::size)
 	{
 	  if(buffer_handle::must_write<Config, Action>()
-	     && has)
+	     && at != nullptr)
 	    {
-	      buffer_handle::rfc1123::date<Config, true, true, timezone_type, Action>(buffer, at, timezone_type(buffer_handle::universal_timezone::GMT));
+	      buffer_handle::rfc1123::date<Config, true, true, timezone_type, Action>(buffer, *at, timezone_type(buffer_handle::universal_timezone::GMT));
 	    }
 	  else
 	    {
@@ -172,14 +242,14 @@ namespace buffer_handle_http_header
     //   ignore the cookie-av.'
     // Thus 'Max-Age=        ;' will force the field to be ignored.
     template<config Config, action Action, class Itoa> inline
-    char * max_age(char * buffer, bool has, time_t max_age, uint8_t & max_digits, const Itoa & itoa)
+    char * max_age(char * buffer, time_t * max_age, uint8_t & max_digits, const Itoa & itoa /* = Itoa() */)
     {
       buffer = buffer_handle::semicolon<config::static_, Action>(buffer);
       buffer = buffer_handle::space<config::static_, Action>(buffer);
       buffer = attribute<Action>(buffer, "Max-Age");
       buffer = buffer_handle::equal<config::static_, Action>(buffer);
 
-      std::size_t length = (std::size_t)buffer_handle::integral_number<Config, align::left, ' ', action::size, Itoa, time_t, uint8_t>(nullptr, max_age, max_digits, itoa);
+      std::size_t length = (std::size_t)buffer_handle::integral_number<Config, align::left, ' ', action::size, Itoa, time_t, uint8_t>(nullptr, time_t(), max_digits, itoa);
 
       switch(Action)
 	{
@@ -190,9 +260,9 @@ namespace buffer_handle_http_header
 	case action::write:
 	case action::reset:
 	  {
-	    if(has)
+	    if(max_age != nullptr)
 	      {
-		buffer_handle::integral_number<Config, align::left, ' ', Action, Itoa, time_t, uint8_t>(buffer, max_age, max_digits, itoa);
+		buffer_handle::integral_number<Config, align::left, ' ', Action, Itoa, time_t, uint8_t>(buffer, *max_age, max_digits, itoa);
 	      }
 	    else
 	      {
@@ -207,128 +277,316 @@ namespace buffer_handle_http_header
     template<config Config, action Action> inline
     char * domain(char * buffer, const char * value, std::size_t length, std::size_t max_length)
     {
-      return handle_string<Config, Action>(buffer, "Domain", value, length, max_length);
+      return details::handle_string<Config, Action>(buffer, "Domain", value, length, max_length);
+    }
+
+    template<config Config, action Action> inline
+    char * domain(char * buffer, char ** value, std::size_t length, std::size_t max_length)
+    {
+      return details::handle_string<Config, Action>(buffer, "Domain", value, length, max_length);
+    }
+
+    template<config Config, action Action> inline
+    char * domain(char * buffer, std::nullptr_t value, std::size_t length, std::size_t max_length)
+    {
+      return details::handle_string<Config, Action>(buffer, "Domain", (char *)value, length, max_length);
     }
 
     template<config Config, action Action> inline
     char * path(char * buffer, const char * value, std::size_t length, std::size_t max_length)
     {
-      return handle_string<Config, Action>(buffer, "Path", value, length, max_length);
+      return details::handle_string<Config, Action>(buffer, "Path", value, length, max_length);
+    }
+
+    template<config Config, action Action> inline
+    char * path(char * buffer, char ** value, std::size_t length, std::size_t max_length)
+    {
+      return details::handle_string<Config, Action>(buffer, "Path", value, length, max_length);
+    }
+
+    template<config Config, action Action> inline
+    char * path(char * buffer, std::nullptr_t value, std::size_t length, std::size_t max_length)
+    {
+      return details::handle_string<Config, Action>(buffer, "Path", (char *)value, length, max_length);
+    }
+
+    template<config Config, action Action> inline
+    char * is_secure(char * buffer, bool value)
+    {
+      return details::handle_bool<Config, Action>(buffer, "Secure", value);
+    }
+
+    template<config Config, action Action> inline
+    char * http_only(char * buffer, bool value)
+    {
+      return details::handle_bool<Config, Action>(buffer, "HttpOnly", value);
     }
   };
 
-  template<typename Traits, bool IsValueQuoted> inline
-  cookie_t<Traits, IsValueQuoted>::cookie_t() :
-    name(nullptr),
-    name_length(0),
-
-    value(nullptr),
-    value_length(0),
-
-    expires(),
-    max_age(),
-
-    domain(nullptr),
-    domain_length(0),
-
-    path(nullptr),
-    path_length(0),
-
-    has_expires(false),
-    has_max_age(false),
-    is_secure(false),
-    http_only(false),
-
-    max_name_length(0),
-    max_value_length(0),
-
-    max_max_age_digits(0),
-
-    max_domain_length(0),
-    max_path_length(0)
+  namespace cookie
   {
+    template<class Next, config Config>
+    template<action Action> inline
+    char * expires_t<Next, Config>::handle(char * buffer)
+    {
+      buffer = expires(buffer, this->expires);
 
-  }
+      return Next::template handle<Action>(buffer);
+    }
 
-  // Have dynamic fields at the beginning for locality
-  template<typename Config, bool IsValueQuoted>
-  template<action Action, class Itoa> inline
-  char * cookie_t<Config, IsValueQuoted>::handle(char * buffer, const Itoa & itoa)
+    template<class Next, config Config, class Itoa>
+    template<action Action> inline
+    char * max_age_t<Next, Config, Itoa>::handle(char * buffer)
+    {
+      buffer = max_age(buffer, this->max_age, this->max_max_age_digits, Itoa());
+
+      return Next::template handle<Action>(buffer);
+    }
+
+    template<class Next>
+    struct domain_t<Next, config::dynamic, false> : Next
+    {
+      const char * domain;
+      std::size_t domain_length;
+      std::size_t max_domain_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::domain<config::dynamic, Action>
+	  (buffer, this->domain, this->domain_length, this->max_domain_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next>
+    struct domain_t<Next, config::dynamic, true> : Next
+    {
+      char * domain;
+      std::size_t max_domain_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::domain<config::dynamic, Action>
+	  (buffer, &this->domain, this->max_domain_length, this->max_domain_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next, bool IsExternal>
+    struct domain_t<Next, config::static_, IsExternal>
+    {
+      const char * domain;
+      std::size_t domain_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::domain<config::dynamic, Action>
+	  (buffer, this->domain, this->domain_length, this->domain_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next>
+    struct path_t<Next, config::dynamic, false> : Next
+    {
+      const char * path;
+      std::size_t path_length;
+      std::size_t max_path_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::path<config::dynamic, Action>
+	  (buffer, this->path, this->path_length, this->max_path_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next>
+    struct path_t<Next, config::dynamic, true> : Next
+    {
+      char * path;
+      std::size_t max_path_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::path<config::dynamic, Action>
+	  (buffer, &this->path, this->max_path_length, this->max_path_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next, bool IsExternal>
+    struct path_t<Next, config::static_, IsExternal>
+    {
+      const char * path;
+      std::size_t path_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::path<config::dynamic, Action>
+	  (buffer, this->path, this->path_length, this->path_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next, bool Value>
+    struct is_secure_t<Next, config::dynamic, Value> : Next
+    {
+      bool is_secure;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = details::handle_bool<config::dynamic, Action>(buffer, "Secure", this->is_secure);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next, bool Value>
+    struct is_secure_t<Next, config::static_, Value>
+    {
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	if(Value)
+	  {
+	    buffer = details::handle_bool<config::static_, Action>(buffer, "Secure", true);
+	  }
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next, bool Value>
+    struct http_only_t<Next, config::dynamic, Value> : Next
+    {
+      bool http_only;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = details::handle_bool<config::dynamic, Action>(buffer, "HttpOnly", this->http_only);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next, bool Value>
+    struct http_only_t<Next, config::static_, Value>
+    {
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	if(Value)
+	  {
+	    buffer = details::handle_bool<config::static_, Action>(buffer, "HttpOnly", true);
+	  }
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<bool IsExternal>
+    struct name_t<config::static_, IsExternal>
+    {
+      const char * name;
+      std::size_t name_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::name<config::static_, Action>(buffer, this->name, this->name_length, this->name_length);
+      }
+    };
+
+    template<>
+    struct name_t<config::dynamic, false>
+    {
+      const char * name;
+      std::size_t name_length;
+      std::size_t max_name_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::name<config::dynamic, Action>(buffer, this->name, this->name_length, this->max_name_length);
+      }
+    };
+
+    template<>
+    struct name_t<config::dynamic, true>
+    {
+      char * name;
+      std::size_t max_name_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::name<config::dynamic, Action>(buffer, &this->name, this->max_name_length, this->max_name_length);
+      }
+    };
+
+    template<bool IsQuoted, bool IsExternal>
+    struct value_t<config::static_, IsQuoted, IsExternal>
+    {
+      const char * value;
+      std::size_t value_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::value<config::static_, Action>(buffer, this->value, this->value_length, this->value_length);
+      }
+    };
+
+    template<bool IsQuoted>
+    struct value_t<config::dynamic, IsQuoted, false>
+    {
+      const char * value;
+      std::size_t value_length;
+      std::size_t max_value_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::value<config::dynamic, Action>(buffer, this->value, this->value_length, this->max_value_length);
+      }
+    };
+
+    template<bool IsQuoted>
+    struct value_t<config::dynamic, IsQuoted, true>
+    {
+      const char * value;
+      std::size_t max_value_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::value<config::dynamic, Action>(buffer, &this->value, this->max_value_length, this->max_value_length);
+      }
+    };
+  };
+
+  template<class Next, config NameConfig, config ValueConfig, bool IsQuoted, bool IsNameExternal, bool IsValueExternal>
+  template<action Action>
+  char * cookie_t<Next, NameConfig, ValueConfig, IsQuoted, IsNameExternal, IsValueExternal>::handle(char * buffer)
   {
-    buffer = field_<Action>(buffer, "Set-Cookie");
+    buffer = cookie::name_t<NameConfig, IsNameExternal>::template handle<Action>(buffer);
+    buffer = cookie::value_t<ValueConfig, IsQuoted, IsValueExternal>::template handle<Action>(buffer);
 
-    buffer = buffer_handle::string<name_config, align::right, ' ', Action>(buffer, this->name, this->name_length, this->max_name_length);
-
-    buffer = buffer_handle::equal<config::static_, Action>(buffer);
-
-    buffer = details::value_string<value_config, IsValueQuoted, Action>(buffer, this->value, this->value_length, this->max_value_length);
-
-    if(expires_config == config::dynamic)
-      {
-	buffer = details::expires<expires_config, Action>(buffer, this->has_expires, this->expires);
-      }
-
-    if(max_age_config == config::dynamic)
-      {
-	buffer = details::max_age<max_age_config, Action, Itoa>(buffer, this->has_max_age, this->max_age, this->max_max_age_digits, itoa);
-      }
-
-    if(domain_config == config::dynamic)
-      {
-	buffer = details::domain<domain_config, Action>(buffer, this->domain, this->domain_length, this->max_domain_length);
-      }
-
-    if(path_config == config::dynamic)
-      {
-	buffer = details::path<path_config, Action>(buffer, this->path, this->path_length, this->max_path_length);
-      }
-
-    if(is_secure_config == config::dynamic)
-      {
-	buffer = details::handle_bool<is_secure_config, Action>(buffer, "Secure", this->is_secure);
-      }
-
-    if(http_only_config == config::dynamic)
-      {
-	buffer = details::handle_bool<http_only_config, Action>(buffer, "HttpOnly", this->http_only);
-      }
-
-    if(expires_config == config::static_
-       && this->has_expires)
-      {
-	buffer = details::expires<expires_config, Action>(buffer, true, this->expires);
-      }
-
-    if(max_age_config == config::static_
-       && this->has_max_age)
-      {
-	buffer = details::max_age<max_age_config, Action, Itoa>(buffer, true, this->max_age, this->max_max_age_digits, itoa);
-      }
-
-    if(domain_config == config::static_
-       && this->domain != nullptr)
-      {
-	buffer = details::domain<domain_config, Action>(buffer, this->domain, this->domain_length, this->max_domain_length);
-      }
-
-    if(path_config == config::static_
-       && this->path != nullptr)
-      {
-	buffer = details::path<path_config, Action>(buffer, this->path, this->path_length, this->max_path_length);
-      }
-
-    if(is_secure_config == config::static_
-       && this->is_secure)
-      {
-	buffer = details::handle_bool<is_secure_config, Action>(buffer, "Secure", true);
-      }
-
-    if(http_only_config == config::static_
-       && this->http_only)
-      {
-	buffer = details::handle_bool<http_only_config, Action>(buffer, "HttpOnly", true);
-      }
-
-    return buffer;
+    return Next::template handle<Action>(buffer);
   }
 };

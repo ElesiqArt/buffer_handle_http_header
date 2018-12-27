@@ -5,152 +5,102 @@
 
 namespace buffer_handle_http_header
 {
-  template<config Name,
-	   config Value,
-	   config Expires,
-	   config MaxAge,
-	   config Domain,
-	   config Path,
-	   config IsSecure,
-	   config HttpOnly>
-  struct cookie_config
+  namespace cookie
   {
-    static const config name = Name;
-    static const config value = Value;
+    template<config Config, action Action>
+    char * name(char * buffer, const char * name, std::size_t name_length, std::size_t max_name_length);
 
-    static const config expires = Expires;
-    static const config max_age = MaxAge;
-    static const config domain = Domain;
-    static const config path = Path;
-    static const config is_secure = IsSecure;
-    static const config http_only = HttpOnly;
+    template<config Config, bool IsQuoted, action Action>
+    char * value(char * buffer, const char * value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * expires(char * buffer, std::tm * at);
+
+    template<config Config, action Action, class Itoa>
+    char * max_age(char * buffer, time_t * max_age, uint8_t & max_digits, const Itoa & itoa = Itoa());
+
+    template<config Config, action Action>
+    char * domain(char * buffer, const char * value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * path(char * buffer, const char * value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * is_secure(char * buffer, bool value);
+
+    template<config Config, action Action>
+    char * http_only(char * buffer, bool value);
   };
 
-  enum class cookie_config_select
+  namespace cookie
   {
-    name,
-      value,
-
-      expires,
-      max_age,
-      domain,
-      path,
-      is_secure,
-      http_only
-      };
-
-  namespace details
-  {
-    template<bool B, config T, config F>
-    struct conditional_cookie_config
+    template<config Config, bool IsExternal = false>
+    struct name_t
     {
-      static const config value = T;
+
     };
 
-    template<config T, config F>
-    struct conditional_cookie_config<false, T, F>
+    template<config Config, bool IsQuoted, bool IsExternal = false>
+    struct value_t
     {
-      static const config value = F;
+
+    };
+
+    template<class Next, config Config>
+    struct expires_t : Next
+    {
+      std::tm * expires;
+
+      template<action Action>
+      char * handle(char * buffer);
+    };
+
+    template<class Next, config Config, class Itoa>
+    struct max_age_t : Next
+    {
+      time_t * max_age;
+
+      template<action Action>
+      char * handle(char * buffer);
+    };
+
+    template<class Next, config Config, bool IsExternal>
+    struct domain_t : Next
+    {
+      template<action Action>
+      char * handle(char * buffer);
+    };
+
+    template<class Next, config Config, bool IsExternal>
+    struct path_t : Next
+    {
+      template<action Action>
+      char * handle(char * buffer);
+    };
+
+    template<class Next, config Config, bool Value = true>
+    struct is_secure_t : Next
+    {
+      template<action Action>
+      char * handle(char * buffer);
+    };
+
+    template<class Next, config Config, bool Value = true>
+    struct http_only_t : Next
+    {
+      template<action Action>
+      char * handle(char * buffer);
     };
   };
 
-  template<typename PreviousConfig, cookie_config_select Change, config Config>
-  struct set_cookie_config
+  template<class Next, config NameConfig, config ValueConfig, bool IsQuoted, bool IsNameExternal = false, bool IsValueExternal = false>
+  struct cookie_t :
+    cookie::name_t<NameConfig, IsNameExternal>,
+    cookie::value_t<ValueConfig, IsQuoted, IsValueExternal>,
+    Next
   {
-#define DEFINE(X)							\
-    static const config X = details::conditional_cookie_config<Change == cookie_config_select::X, Config, PreviousConfig::X>::value
-
-    DEFINE(name);
-    DEFINE(value);
-
-    DEFINE(expires);
-    DEFINE(max_age);
-    DEFINE(domain);
-    DEFINE(path);
-    DEFINE(is_secure);
-    DEFINE(http_only);
-
-#undef DEFINE
-  };
-
-  struct static_cookie_config
-  {
-    static const config name = config::static_;
-    static const config value = config::static_;
-
-    static const config expires = config::static_;
-    static const config max_age = config::static_;
-    static const config domain = config::static_;
-    static const config path = config::static_;
-    static const config is_secure = config::static_;
-    static const config http_only = config::static_;
-  };
-
-  struct dynamic_cookie_config
-  {
-    static const config name = config::dynamic;
-    static const config value = config::dynamic;
-
-    static const config expires = config::dynamic;
-    static const config max_age = config::dynamic;
-    static const config domain = config::dynamic;
-    static const config path = config::dynamic;
-    static const config is_secure = config::dynamic;
-    static const config http_only = config::dynamic;
-  };
-
-  template<typename Config, bool IsValueQuoted>
-  struct cookie_t
-  {
-  public:
-    static const config name_config = Config::name;
-    static const config value_config = Config::value;
-
-    static const config expires_config = Config::expires;
-    static const config max_age_config = Config::max_age;
-    static const config domain_config = Config::domain;
-    static const config path_config = Config::path;
-    static const config is_secure_config = Config::is_secure;
-    static const config http_only_config = Config::http_only;
-
-  public:
-    static const bool is_value_quoted = IsValueQuoted;
-
-  public:
-    cookie_t();
-
-  public:
-    const char * name;
-    std::size_t name_length;
-    std::size_t max_name_length;
-
-    const char * value;
-    std::size_t value_length;
-    std::size_t max_value_length;
-
-    std::tm expires;
-
-    time_t max_age;
-
-    const char * domain;
-    std::size_t domain_length;
-    std::size_t max_domain_length;
-
-    const char * path;
-    std::size_t path_length;
-    std::size_t max_path_length;
-
-    uint8_t has_expires : 1;
-    uint8_t has_max_age : 1;
-    uint8_t is_secure : 1;
-    uint8_t http_only : 1;
-
-  protected:
-    uint8_t max_max_age_digits;
-
-  public:
-    template<action Action, class Itoa>
-    char * handle(char * buffer, const Itoa & itoa = Itoa());
+    template<action Action>
+    char * handle(char * buffer);
   };
 };
 

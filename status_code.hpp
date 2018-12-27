@@ -11,6 +11,11 @@ namespace buffer_handle_http_header
 
   namespace status_code
   {
+    struct any
+    {
+      static constexpr status_code_t value = 999;
+    };
+
 #define BUFFER_HANDLE_HTTP_HEADER_INSTALL_STATUS_CODE(name_arg, value_arg, reason_arg) \
     struct name_arg							\
     {									\

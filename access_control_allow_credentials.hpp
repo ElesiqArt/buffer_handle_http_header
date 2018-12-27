@@ -1,7 +1,7 @@
 #ifndef BUFFER_HANDLE_HTTP_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS_HPP
 #define BUFFER_HANDLE_HTTP_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS_HPP
 
-#include <buffer_handle_http_header/type.hpp>
+#include <buffer_handle_http_header/type.hpp> // action config
 
 namespace buffer_handle_http_header
 {

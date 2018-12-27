@@ -459,7 +459,7 @@ SCENARIO("Allow", "[allow]")
 	  }
 	}
     }
-
+#if 0
   WHEN("Dynamic")
     {
       allow_t<config::dynamic, method_t> allow;
@@ -488,6 +488,7 @@ SCENARIO("Allow", "[allow]")
 	  }
 	}
     }
+#endif
 }
 
 SCENARIO("Content MD5", "[content-md5]")
@@ -522,201 +523,253 @@ SCENARIO("Content MD5", "[content-md5]")
 
 SCENARIO("Cookie", "[cookie]")
 {
-  WHEN("Handle bool")
-    {
-      const char * attribute = "attribute";
+  {using namespace buffer_handle_http_header::cookie::details;
 
-      WHEN("Static")
-	{
-	  WHEN("true")
-	    {
-	      std::size_t size = (std::size_t)details::handle_bool<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), true);
+    WHEN("Handle bool")
+      {
+	const char * attribute = "attribute";
 
-	      GIVEN("Size")
-		{
-		  GIVEN_A_BUFFER(size)
+	WHEN("Static")
+	  {
+	    WHEN("true")
+	      {
+		std::size_t size = (std::size_t)handle_bool<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), true);
+
+		GIVEN("Size")
 		  {
-		    end = details::handle_bool<config::static_, action::prepare>(begin, attribute, std::strlen(attribute), true);
+		    GIVEN_A_BUFFER(size)
+		    {
+		      end = handle_bool<config::static_, action::prepare>(begin, attribute, std::strlen(attribute), true);
 
-		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == std::string("; ") + attribute);
+		      REQUIRE(end - begin == size);
+		      REQUIRE(std::string(begin, end) == std::string("; ") + attribute);
+		    }
 		  }
+	      }
+
+	    WHEN("false")
+	      {
+		std::size_t size = (std::size_t)handle_bool<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), true);
+
+		REQUIRE(size == 1 + 1 + std::strlen(attribute));
+	      }
+	  }
+
+	WHEN("Dynamic")
+	  {
+	    std::size_t size = (std::size_t)handle_bool<config::dynamic, action::size>(nullptr, attribute, std::strlen(attribute), true);
+
+	    GIVEN("Size")
+	      {
+		GIVEN_A_BUFFER(size)
+		{
+		  THEN("Prepare")
+		    {
+		      end = handle_bool<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), true);
+
+		      REQUIRE(end - begin == size);
+
+		      THEN("Write")
+			{
+			  end = handle_bool<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), true);
+
+			  REQUIRE(end - begin == size);
+			  REQUIRE(std::string(begin, end) == std::string("; ") + attribute);
+
+			  THEN("Prepare")
+			    {
+			      end = handle_bool<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), true);
+
+			      REQUIRE(end - begin == size);
+
+			      THEN("Write")
+				{
+				  end = handle_bool<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), false);
+
+				  REQUIRE(end - begin == size);
+				  REQUIRE(std::string(begin, end) == std::string("; ") + std::string(std::strlen(attribute), ' '));
+				}
+			    }
+			}
+		    }
 		}
-	    }
-
-	  WHEN("false")
-	    {
-	      std::size_t size = (std::size_t)details::handle_bool<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), true);
-
-	      REQUIRE(size == 1 + 1 + std::strlen(attribute));
-	    }
-	}
-
-      WHEN("Dynamic")
-	{
-	  std::size_t size = (std::size_t)details::handle_bool<config::dynamic, action::size>(nullptr, attribute, std::strlen(attribute), true);
-
-	  GIVEN("Size")
-	    {
-	      GIVEN_A_BUFFER(size)
-	      {
-		THEN("Prepare")
-		  {
-		    end = details::handle_bool<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), true);
-
-		    REQUIRE(end - begin == size);
-
-		    THEN("Write")
-		      {
-			end = details::handle_bool<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), true);
-
-			REQUIRE(end - begin == size);
-			REQUIRE(std::string(begin, end) == std::string("; ") + attribute);
-
-			THEN("Prepare")
-			  {
-			    end = details::handle_bool<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), true);
-
-			    REQUIRE(end - begin == size);
-
-			    THEN("Write")
-			      {
-				end = details::handle_bool<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), false);
-
-				REQUIRE(end - begin == size);
-				REQUIRE(std::string(begin, end) == std::string("; ") + std::string(std::strlen(attribute), ' '));
-			      }
-			  }
-		      }
-		  }
 	      }
-	    }
-	}
-    }
+	  }
+      }
 
-  WHEN("Handle string")
-    {
-      const char * attribute = "attribute";
-      const char * value = "value";
+    WHEN("Handle string")
+      {
+	const char * attribute = "attribute";
+	const char * value = "value";
 
-      std::size_t max_length = 0;
+	std::size_t max_length = 0;
 
-      WHEN("Static")
-	{
-	  std::size_t size = (std::size_t)details::handle_string<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
-
-	  REQUIRE(max_length == 0);
-
-	  GIVEN("Size")
-	    {
-	      GIVEN_A_BUFFER(size)
+	WHEN("Automatic fill")
+	  {
+	    WHEN("Static")
 	      {
-		THEN("Prepare")
+		std::size_t size = (std::size_t)handle_string<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
+
+		GIVEN("Size")
 		  {
-		    end = details::handle_string<config::static_, action::prepare>(begin, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
-
-		    REQUIRE(max_length == 0);
-		    REQUIRE(end - begin == size);
-		    REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + value);
-		  }
-	      }
-	    }
-	}
-
-      WHEN("Dynamic")
-	{
-	  const std::size_t max_length = 32;
-
-	  std::size_t size = (std::size_t)details::handle_string<config::dynamic, action::size>(nullptr, attribute, std::strlen(attribute), nullptr, std::strlen(value) + 10, max_length);
-
-	  GIVEN("Size")
-	    {
-	      GIVEN_A_BUFFER(size)
-	      {
-		THEN("Prepare")
-		  {
-		    end = details::handle_string<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), nullptr, std::strlen(value) + 10, max_length);
-
-		    REQUIRE(end - begin == size);
-
-		    THEN("Write")
-		      {
-			end = details::handle_string<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
-
-			REQUIRE(end - begin == size);
-			REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + value + ";" + std::string(max_length - std::strlen(value) - 1, ' '));
-
-			THEN("Reset")
-			  {
-			    end = details::handle_string<config::dynamic, action::reset>(begin, attribute, std::strlen(attribute), nullptr, 0, max_length);
-
-			    REQUIRE(end - begin == size);
-			    REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=;" + std::string(max_length - 1, ' '));
-
-			    THEN("Write")
-			      {
-				std::size_t part = 4;
-
-				end = details::handle_string<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), value, std::strlen(value) - part, max_length);
-
-				REQUIRE(end - begin == size);
-				REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + std::string(value, std::strlen(value) - part) + ";" + std::string(max_length - (std::strlen(value) - part) - 1, ' '));
-			      }
-			  }
-		      }
-		  }
-	      }
-	    }
-	}
-    }
-
-  WHEN("Value string")
-    {
-      WHEN("Static")
-	{
-	  WHEN("Is quoted")
-	    {
-	      std::size_t size = (std::size_t)details::value_string<config::static_, true, action::size>(nullptr, "Hello world!", 12, 0);
-
-	      GIVEN("Size")
-		{
-		  GIVEN_A_BUFFER(size)
+		    GIVEN_A_BUFFER(size)
 		    {
 		      THEN("Prepare")
 			{
-			  end = details::value_string<config::static_, true, action::prepare>(begin, "Hello world!", 12, 0);
+			  end = handle_string<config::static_, action::prepare>(begin, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
+
+			  REQUIRE(end - begin == size);
+			  REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + value);
+			}
+		    }
+		  }
+	      }
+
+	    WHEN("Dynamic")
+	      {
+		const std::size_t max_length = 32;
+
+		std::size_t size = (std::size_t)handle_string<config::dynamic, action::size>(nullptr, attribute, std::strlen(attribute), nullptr, std::strlen(value) + 10, max_length);
+
+		GIVEN("Size")
+		  {
+		    GIVEN_A_BUFFER(size)
+		    {
+		      THEN("Prepare")
+			{
+			  end = handle_string<config::dynamic, action::prepare>(begin, attribute, std::strlen(attribute), nullptr, std::strlen(value) + 10, max_length);
+
+			  REQUIRE(end - begin == size);
+
+			  THEN("Write")
+			    {
+			      end = handle_string<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), value, std::strlen(value), max_length);
+
+			      REQUIRE(end - begin == size);
+			      REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + value + ";" + std::string(max_length - std::strlen(value) - 1, ' '));
+
+			      THEN("Reset")
+				{
+				  end = handle_string<config::dynamic, action::reset>(begin, attribute, std::strlen(attribute), nullptr, 0, max_length);
+
+				  REQUIRE(end - begin == size);
+				  REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=;" + std::string(max_length - 1, ' '));
+
+				  THEN("Write")
+				    {
+				      std::size_t part = 4;
+
+				      end = handle_string<config::dynamic, action::write>(begin, attribute, std::strlen(attribute), value, std::strlen(value) - part, max_length);
+
+				      REQUIRE(end - begin == size);
+				      REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + std::string(value, std::strlen(value) - part) + ";" + std::string(max_length - (std::strlen(value) - part) - 1, ' '));
+				    }
+				}
+			    }
+			}
+		    }
+		  }
+	      }
+	  }
+
+	WHEN("Manual fill")
+	  {
+	    max_length = std::strlen(value);
+
+	    WHEN("Static")
+	      {
+		std::size_t size = (std::size_t)handle_string<config::static_, action::size>(nullptr, attribute, std::strlen(attribute), nullptr, 0, max_length);
+
+		GIVEN("Size")
+		  {
+		    GIVEN_A_BUFFER(size)
+		    {
+		      THEN("Prepare")
+			{
+			  char * ptr = nullptr;
+
+			  end = handle_string<config::static_, action::prepare>(begin, attribute, std::strlen(attribute), &ptr, 0, max_length);
+
+			  REQUIRE(ptr != nullptr);
+			  REQUIRE(end - begin == size);
+			  std::memcpy(ptr, value, std::strlen(value));
+			  REQUIRE(std::string(begin, end) == std::string("; ") + attribute + "=" + value);
+			}
+		    }
+		  }
+	      }
+	  }
+      }
+  }
+
+  {using namespace buffer_handle_http_header::cookie;
+    WHEN("Name")
+      {
+	WHEN("Static")
+	  {
+	    std::size_t size = (std::size_t)name<config::static_, action::size>(nullptr, "name", 4, 4);
+
+	    GIVEN_A_BUFFER(size)
+	    {
+	      THEN("Prepare")
+		{
+		  end = name<config::static_, action::prepare>(begin, "name", 4, 4);
+
+		  REQUIRE(end - begin == size);
+		  REQUIRE(std::string(begin, end) == "Set-Cookie: name=");
+		}
+	    }
+	  }
+      }
+
+    WHEN("Value")
+      {
+	WHEN("Static")
+	  {
+	    WHEN("Is quoted")
+	      {
+		std::size_t size = (std::size_t)value<config::static_, true, action::size>(nullptr, "Hello world!", 12, 0);
+
+		GIVEN("Size")
+		  {
+		    GIVEN_A_BUFFER(size)
+		    {
+		      THEN("Prepare")
+			{
+			  end = value<config::static_, true, action::prepare>(begin, "Hello world!", 12, 0);
 
 			  REQUIRE(end - begin == size);
 			  REQUIRE(std::string(begin, end) == "\"Hello world!\"");
 			}
 		    }
-		}
-	    }
-	}
-
-      WHEN("Dynamic")
-	{
-	  WHEN("IsQuoted")
-	    {
-	      std::size_t size = (std::size_t)details::value_string<config::dynamic, true, action::size>(nullptr, nullptr, 0, 16);
-
-	      GIVEN("Size")
-		{
-		  GIVEN_A_BUFFER(size)
-		  {
-		    THEN("Prepare")
-		      {
-			end = details::value_string<config::dynamic, true, action::prepare>(begin, "Hello world!", 12, 16);
-
-			REQUIRE(end - begin == size);
-			REQUIRE(std::string(begin, end) == "\"Hello world!\"    ");
-		      }
 		  }
-		}
-	    }
-	}
-    }
+	      }
+	  }
 
+	WHEN("Dynamic")
+	  {
+	    WHEN("IsQuoted")
+	      {
+		std::size_t size = (std::size_t)value<config::dynamic, true, action::size>(nullptr, nullptr, 0, 16);
+
+		GIVEN("Size")
+		  {
+		    GIVEN_A_BUFFER(size)
+		    {
+		      THEN("Prepare")
+			{
+			  end = value<config::dynamic, true, action::prepare>(begin, "Hello world!", 12, 16);
+
+			  REQUIRE(end - begin == size);
+			  REQUIRE(std::string(begin, end) == "\"Hello world!\"    ");
+			}
+		    }
+		  }
+	      }
+	  }
+      }
+  }
+#if 0
   buffer_handle::adapter::itoa::to_string_t itoa;
 
   WHEN("All static")
@@ -863,19 +916,19 @@ SCENARIO("Cookie", "[cookie]")
 
 		THEN("Write")
 		  {
-		     cookie.has_expires = true;
-		     cookie.expires.tm_wday = 0;
-		     cookie.expires.tm_mday = 1;
-		     cookie.expires.tm_mon = 11;
-		     cookie.expires.tm_year = 1;
-		     cookie.expires.tm_hour = 5;
-		     cookie.expires.tm_min = 23;
-		     cookie.expires.tm_sec = 59;
+		    cookie.has_expires = true;
+		    cookie.expires.tm_wday = 0;
+		    cookie.expires.tm_mday = 1;
+		    cookie.expires.tm_mon = 11;
+		    cookie.expires.tm_year = 1;
+		    cookie.expires.tm_hour = 5;
+		    cookie.expires.tm_min = 23;
+		    cookie.expires.tm_sec = 59;
 
-		     end = cookie.handle<action::write>(begin, itoa);
+		    end = cookie.handle<action::write>(begin, itoa);
 
-		     REQUIRE(end - begin == size);
-		     REQUIRE(std::string(begin, end) == "Set-Cookie:      cookie-name=\"cookie value\"                    ; Expires=Sun  01 Dec 1901 05 23 59    ; Max-Age=        ; Domain=;               ; Path=;                               ;       ;         ");
+		    REQUIRE(end - begin == size);
+		    REQUIRE(std::string(begin, end) == "Set-Cookie:      cookie-name=\"cookie value\"                    ; Expires=Sun  01 Dec 1901 05 23 59    ; Max-Age=        ; Domain=;               ; Path=;                               ;       ;         ");
 		  }
 
 		THEN("Write")
@@ -912,6 +965,7 @@ SCENARIO("Cookie", "[cookie]")
 
       typedef set_cookie_config<current_config, cookie_config_select::name, config::static_> new_config;
     }
+#endif
 }
 
 SCENARIO("Access-Control-Allow-Credentials", "[access-control-allow-credentials]")

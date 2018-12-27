@@ -46,7 +46,7 @@ namespace buffer_handle_http_header
   {
     buffer = field_<Action>(buffer, field);
 
-    buffer = buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits>::template handle<Action, Itoa>(buffer, value, itoa);
+    buffer = buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits, IsLong>::template handle<Action, Itoa>(buffer, value, itoa);
 
     return buffer;
   }
@@ -100,7 +100,7 @@ namespace buffer_handle_http_header
   template<config Config, bool ListSetMaxLength, bool IsLong>
   void container_field_t<Config, ListSetMaxLength, IsLong>::set_max_length(std::size_t length)
   {
-    this->max_length = length;
+    this->set_max_length(length);
   }
 
   template<config Config, bool ListSetMaxLength, bool IsLong>
@@ -126,9 +126,10 @@ namespace buffer_handle_http_header
       if(Config == config::static_)
 #endif
       {
-	this->max_length = (std::size_t)buffer_handle::container
-	  <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
-	  (nullptr, begin, end, this->max_length, element, separator);
+	std::size_t dummy_max_length;
+	this->set_max_length((std::size_t)buffer_handle::container
+			     <config::static_, align::right, ' ', action::size, Element, Separator, Iterator>
+			     (nullptr, begin, end, dummy_max_length, element, separator));
       }
 
     buffer = buffer_handle::container_t<Config, align::right, ' '>:: template handle<Action, Iterator, Element, Separator>(buffer, begin, end, element, separator);
