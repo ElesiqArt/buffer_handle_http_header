@@ -608,7 +608,7 @@ Run `make test` to compile and `make run-test` to execute, or simply `make`.
 
 ### Dependencies
 
-* [Buffer handle v1.1](https://github.com/gscano/buffer_handle/releases/tag/v1.1)
+* [Buffer handle v1.1](https://github.com/gscano/buffer_handle/releases/tag/v1.3)
 * [Catch2](https://github.com/catchorg/Catch2) (tested with version [2.3.0](https://github.com/catchorg/Catch2/releases/tag/v2.3.0))
 
 To change the path of these dependencies, create a `config.mk` file and then assign the `BUFFER_HANDLE` and `CATCH` variables with the appropriate locations (`.` is used by default).

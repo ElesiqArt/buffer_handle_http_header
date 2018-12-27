@@ -152,7 +152,7 @@ namespace buffer_handle_http_header
 	    {
 	      std::size_t diff = max_length - length;
 
-	      if(buffer_handle::must_write<Config, Action>()
+	      if(buffer_handle::must_write(Config, Action)
 		 && 0 < diff)
 		{
 		  std::memset(local, ' ', diff);
@@ -223,7 +223,7 @@ namespace buffer_handle_http_header
 
       if(Action != action::size)
 	{
-	  if(buffer_handle::must_write<Config, Action>()
+	  if(buffer_handle::must_write(Config, Action)
 	     && at != nullptr)
 	    {
 	      buffer_handle::rfc1123::date<Config, true, true, timezone_type, Action>(buffer, *at, timezone_type(buffer_handle::universal_timezone::GMT));

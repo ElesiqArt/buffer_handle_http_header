@@ -194,7 +194,7 @@ namespace buffer_handle_http_header
   {
     const char * value = EnumSetName::get(element);
 
-    if(buffer_handle::must_write<Config, Action>())
+    if(buffer_handle::must_write(Config, Action))
       {
 	std::memcpy(buffer, value, std::strlen(value));
       }
