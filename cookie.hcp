@@ -1,5 +1,5 @@
 #include <cstring> // memcpy() memset()
-#include <cstddef>
+#include <cstddef> // nullptr_t
 
 #include <buffer_handle/date.hpp> // rfc1123::date()
 #include <buffer_handle/helper.hpp> // must_write()
@@ -7,6 +7,8 @@
 #include <buffer_handle/string.hpp> // string()
 #include <buffer_handle/timezone.hpp> // universal_timezone_t
 #include <buffer_handle/token.hpp> // equal() semicolon() space()
+
+#include <buffer_handle_http_header/common.hpp> // field_()
 
 namespace buffer_handle_http_header
 {
@@ -115,10 +117,22 @@ namespace buffer_handle_http_header
 	return handle_string<Config, Action>(buffer, attribute, std::strlen(attribute), value, length, max_length);
       }
 
+      template<config Config, action Action> inline
+      char * handle_string(char * buffer, const char * attribute, char ** value, std::size_t length, std::size_t & max_length)
+      {
+	return handle_string<Config, Action>(buffer, attribute, std::strlen(attribute), value, length, max_length);
+      }
+
+      template<config Config, action Action> inline
+      char * handle_string(char * buffer, const char * attribute, std::nullptr_t value, std::size_t length, std::size_t & max_length)
+      {
+	return handle_string<Config, Action>(buffer, attribute, std::strlen(attribute), value, length, max_length);
+      }
+
       template<config Config, action Action, typename T> inline
       char * name(char * buffer, T name, std::size_t name_length, std::size_t max_name_length)
       {
-	buffer = field_<Action>(buffer, "Set-Cookie");
+	buffer = ::buffer_handle_http_header::field_<Action>(buffer, "Set-Cookie");
 
 	buffer = buffer_handle::string<Config, align::right, ' ', Action>(buffer, name, name_length, max_name_length);
 
@@ -127,47 +141,47 @@ namespace buffer_handle_http_header
 	return buffer;
       }
 
-	  // rfc 6265 §5.2 1. states:
-    // 'Remove any leading or trailing WSP characters from the name string and the value string'
-    // Thus pad left because 'name string' is padded right (locality).
-    template<config Config, bool IsQuoted, action Action, typename T> inline
-    char * value(char * buffer, T value, std::size_t length, std::size_t max_length)
-    {
-      if(IsQuoted)
-	{
-	  char * local = buffer_handle::double_quote<config::static_, Action>(buffer);
+      // rfc 6265 §5.2 1. states:
+      // 'Remove any leading or trailing WSP characters from the name string and the value string'
+      // Thus pad left because 'name string' is padded right (locality).
+      template<config Config, bool IsQuoted, action Action, typename T> inline
+      char * value(char * buffer, T value, std::size_t length, std::size_t max_length)
+      {
+	if(IsQuoted)
+	  {
+	    char * local = buffer_handle::double_quote<config::static_, Action>(buffer);
 
-	  if(value != nullptr)
-	    {
-	      local = buffer_handle::string<Config, Action>(local, value, length);
-	    }
+	    if(value != nullptr)
+	      {
+		local = buffer_handle::string<Config, Action>(local, value, length);
+	      }
 
-	  local = buffer_handle::double_quote<Config, Action>(local);
+	    local = buffer_handle::double_quote<Config, Action>(local);
 
-	  if(Config == config::static_)
-	    {
-	      buffer += length;
-	    }
-	  else if(Config == config::dynamic)
-	    {
-	      std::size_t diff = max_length - length;
+	    if(Config == config::static_)
+	      {
+		buffer += length;
+	      }
+	    else if(Config == config::dynamic)
+	      {
+		std::size_t diff = max_length - length;
 
-	      if(buffer_handle::must_write(Config, Action)
-		 && 0 < diff)
-		{
-		  std::memset(local, ' ', diff);
-		}
+		if(buffer_handle::must_write(Config, Action)
+		   && 0 < diff)
+		  {
+		    std::memset(local, ' ', diff);
+		  }
 
-	      buffer += max_length;
-	    }
+		buffer += max_length;
+	      }
 
-	  return buffer + 2;
-	}
-      else
-	{
-	  return buffer_handle::string<Config, align::left, ' ', Action>(buffer, value, length, max_length);
-	}
-    }
+	    return buffer + 2;
+	  }
+	else
+	  {
+	    return buffer_handle::string<Config, align::left, ' ', Action>(buffer, value, length, max_length);
+	  }
+      }
     };
 
     template<config Config, action Action> inline
@@ -179,7 +193,11 @@ namespace buffer_handle_http_header
     template<config Config, action Action> inline
     char * name(char * buffer, char ** name, std::size_t name_length, std::size_t max_name_length)
     {
-      return details::name<Config, Action>(buffer, name, name_length, max_name_length);
+      buffer = details::name<Config, Action>(buffer, name, name_length, max_name_length);
+
+      *name = *name - max_name_length;//Because 'name' is right aligned, shift left for convenience
+
+      return buffer;
     }
 
     template<config Config, action Action> inline
@@ -499,8 +517,8 @@ namespace buffer_handle_http_header
       }
     };
 
-    template<bool IsExternal>
-    struct name_t<config::static_, IsExternal>
+    template<>
+    struct name_t<config::static_, false>
     {
       const char * name;
       std::size_t name_length;
@@ -509,6 +527,19 @@ namespace buffer_handle_http_header
       char * handle(char * buffer)
       {
 	return cookie::name<config::static_, Action>(buffer, this->name, this->name_length, this->name_length);
+      }
+    };
+
+    template<>
+    struct name_t<config::static_, true>
+    {
+      char * name;
+      std::size_t name_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::name<config::static_, Action>(buffer, &this->name, this->name_length, this->name_length);
       }
     };
 
@@ -548,7 +579,7 @@ namespace buffer_handle_http_header
       template<action Action>
       char * handle(char * buffer)
       {
-	return cookie::value<config::static_, Action>(buffer, this->value, this->value_length, this->value_length);
+	return cookie::value<config::static_, IsQuoted, Action>(buffer, this->value, this->value_length, this->value_length);
       }
     };
 
@@ -562,20 +593,20 @@ namespace buffer_handle_http_header
       template<action Action>
       char * handle(char * buffer)
       {
-	return cookie::value<config::dynamic, Action>(buffer, this->value, this->value_length, this->max_value_length);
+	return cookie::value<config::dynamic, IsQuoted, Action>(buffer, this->value, this->value_length, this->max_value_length);
       }
     };
 
     template<bool IsQuoted>
     struct value_t<config::dynamic, IsQuoted, true>
     {
-      const char * value;
+      char * value;
       std::size_t max_value_length;
 
       template<action Action>
       char * handle(char * buffer)
       {
-	return cookie::value<config::dynamic, Action>(buffer, &this->value, this->max_value_length, this->max_value_length);
+	return cookie::value<config::dynamic, IsQuoted, Action>(buffer, &this->value, this->max_value_length, this->max_value_length);
       }
     };
   };

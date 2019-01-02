@@ -1,6 +1,6 @@
 # Handle HTTP header buffer
 
-This **C++ 11** library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common HTTP headers.
+This **C++ 11** header-only library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common HTTP headers.
 
 * [Background](#background)
 * [Reference](#reference)
@@ -8,10 +8,10 @@ This **C++ 11** library under [MIT license](LICENSE) and based on the [buffer ha
 
 ## Background
 
-The library depends on [buffer handle v1.1](https://github.com/gscano/buffer_handle/releases/tag/v1.1). Please refer to the [documentation](https://github.com/gscano/buffer_handle/blob/v1.1/README.md) for concepts and examples.
+The library depends on [buffer handle v1.3](https://github.com/gscano/buffer_handle/releases/tag/v1.3). Please refer to the [documentation](https://github.com/gscano/buffer_handle/blob/v1.3/README.md) for concepts and examples.
 
-This library adds a layer on top of buffer handle functions and functors in order to handle header fields.
-This wrapper could be used to handle new headers and is defined in `buffer_handle_http_header/common.hpp`.
+This library adds a layer on top of buffer handle functions and functors in order to handle HTTP header fields.
+This wrapper could be used to handle new HTTP headers and is defined in `buffer_handle_http_header/common.hpp`.
 
 Normative documents used:
 * [RFC 2616](https://tools.ietf.org/html/rfc2616)
@@ -91,13 +91,12 @@ typedef uint16_t status_code_t;
 namespace status_code
 {
   #define BUFFER_HANDLE_HTTP_INSTALL_STATUS_CODE(NAME, VALUE, REASON)
-  /* To define a struct such as
+  //To define
   struct NAME
   {
     static constexpr status_code_t value; // to hold VALUE
     static constexpr const char * reason; // to hold REASON
   };
-  */
 };
 ```
 
