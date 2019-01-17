@@ -241,14 +241,16 @@ namespace buffer_handle_http_header
 
       if(Action != action::size)
 	{
-	  if(buffer_handle::must_write(Config, Action)
-	     && at != nullptr)
+	  if(buffer_handle::must_write(Config, Action))
 	    {
-	      buffer_handle::rfc1123::date<Config, true, true, timezone_type, Action>(buffer, *at, timezone_type(buffer_handle::universal_timezone::GMT));
-	    }
-	  else
-	    {
-	      std::memset(buffer, ' ', length);
+	      if(at != nullptr)
+		{
+		  buffer_handle::rfc1123::date<Config, true, true, timezone_type, Action>(buffer, *at, timezone_type(buffer_handle::universal_timezone::GMT));
+		}
+	      else
+		{
+		  std::memset(buffer, ' ', length);
+		}
 	    }
 	}
 
@@ -259,6 +261,9 @@ namespace buffer_handle_http_header
     // 'If the first character of the attribute-value is not a DIGIT or a "-" character,
     //   ignore the cookie-av.'
     // Thus 'Max-Age=        ;' will force the field to be ignored.
+    // 'If the remainder of attribute-value contains a non-DIGIT character,
+    //   ignore the cookie-av.'
+    // Thus add a ';' after the number.
     template<config Config, action Action, class Itoa> inline
     char * max_age(char * buffer, time_t * max_age, uint8_t & max_digits, const Itoa & itoa /* = Itoa() */)
     {
@@ -267,29 +272,61 @@ namespace buffer_handle_http_header
       buffer = attribute<Action>(buffer, "Max-Age");
       buffer = buffer_handle::equal<config::static_, Action>(buffer);
 
-      std::size_t length = (std::size_t)buffer_handle::integral_number<Config, align::left, ' ', action::size, Itoa, time_t, uint8_t>(nullptr, time_t(), max_digits, itoa);
-
-      switch(Action)
+      if(Config == config::static_)
 	{
-	case action::prepare:
-	  {
-	    max_digits = length;
-	  }
-	case action::write:
-	case action::reset:
-	  {
-	    if(max_age != nullptr)
+	  assert(max_age != nullptr && "Max-Age cannot be null when static.");
+
+	  buffer = buffer_handle::integral_number<Action, Itoa, time_t>(buffer, *max_age, itoa);
+	}
+      else if(Config == config::dynamic)
+	{
+	  switch(Action)
+	    {
+	    case action::size:
 	      {
-		buffer_handle::integral_number<Config, align::left, ' ', Action, Itoa, time_t, uint8_t>(buffer, *max_age, max_digits, itoa);
+		assert(max_age != nullptr && "Max-Age value must be specified when calculating the size.");
+
+		std::size_t length = buffer_handle::details::digits(*max_age);
+
+		return buffer + length;
 	      }
-	    else
+	    case action::prepare:
 	      {
-		std::memset(buffer, ' ', length);
+		assert(max_age != nullptr && "Max-Age value must be specified when preparing.");
+
+		max_digits = buffer_handle::details::digits(*max_age);
+		max_age = nullptr;
 	      }
-	  }
+	    case action::write:
+	    case action::reset:
+	      {
+		if(max_age != nullptr)
+		  {
+		    char * end = itoa.template fwd<time_t>(buffer, *max_age);
+
+		    if(end != buffer + max_digits)
+		      {
+			*end = ';';
+		      }
+		  }
+		else
+		  {
+		    std::memset(buffer, ' ', max_digits);
+		  }
+	      }
+	    }
+
+	  buffer += max_digits;
 	}
 
-      return buffer + length;
+      return buffer;
+    }
+
+    template<action Action, class Itoa> inline
+    char * max_age(char * buffer, time_t max_age, const Itoa & itoa /* = Itoa() */)
+    {
+      uint8_t max_digits;
+      return ::buffer_handle_http_header::cookie::max_age<config::static_, Action, Itoa>(buffer, &max_age, max_digits, itoa);
     }
 
     template<config Config, action Action> inline
@@ -458,14 +495,32 @@ namespace buffer_handle_http_header
       return Next::template handle<Action>(buffer);
     }
 
-    template<class Next, config Config, class Itoa>
-    template<action Action> inline
-    char * max_age_t<Next, Config, Itoa>::handle(char * buffer)
+    template<class Next, class Itoa>
+    struct max_age_t<Next, config::static_, Itoa>
     {
-      buffer = max_age(buffer, this->max_age, this->max_max_age_digits, Itoa());
+      time_t max_age;
 
-      return Next::template handle<Action>(buffer);
-    }
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = max_age(buffer, &this->max_age, Itoa());
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next, class Itoa>
+    struct max_age_t<Next, config::dynamic, Itoa>
+    {
+      time_t * max_age;
+      uint8_t max_max_age_digits;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = max_age(buffer, this->max_age, this->max_max_age_digits, Itoa());
+      }
+    };
 
     template<class Next>
     struct domain_t<Next, config::static_, false>

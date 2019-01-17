@@ -769,6 +769,120 @@ SCENARIO("Cookie", "[cookie]")
 	  }
       }
   }
+
+  {using namespace buffer_handle_http_header::cookie;
+    WHEN("Expires")
+      {
+	std::tm time;
+
+	WHEN("Static")
+	  {
+	    std::size_t size = (std::size_t)expires<config::static_, action::size>(nullptr, &time);
+
+	    GIVEN_A_BUFFER(size)
+	    {
+	      THEN("Prepare")
+		{
+		  end = expires<config::static_, action::prepare>(begin, &time);
+
+		  REQUIRE(end - begin == size);
+		  REQUIRE(std::string(begin, end) == "; Expires=Sun, 00 Jan 1900 00:00:00 GMT");
+		}
+	    }
+	  }
+
+	WHEN("Dynamic")
+	  {
+	    std::size_t size = (std::size_t)expires<config::dynamic, action::size>(nullptr, &time);
+
+	    GIVEN_A_BUFFER(size)
+	    {
+	      THEN("Prepare")
+		{
+		  end = expires<config::dynamic, action::prepare>(begin, &time);
+
+		  REQUIRE(end - begin == size);
+		  REQUIRE(std::string(begin, end) == "; Expires=Sun, 00 Jan 1900 00:00:00 GMT");
+
+		  THEN("Write")
+		    {
+		      end = expires<config::dynamic, action::prepare>(begin, nullptr);
+
+		      REQUIRE(end - begin == size);
+		      REQUIRE(std::string(begin, end) == "; Expires=                             ");
+		    }
+		}
+
+	      THEN("Prepare")
+		{
+		  end = expires<config::dynamic, action::prepare>(begin, nullptr);
+
+		  REQUIRE(end - begin == size);
+		  REQUIRE(std::string(begin, end) == "; Expires=                             ");
+		}
+	    }
+	  }
+      }
+  }
+
+  {using namespace buffer_handle_http_header::cookie;
+    WHEN("MaxAge")
+      {
+	buffer_handle::adapter::itoa::to_string_t itoa;
+	uint8_t max_digits = 0;
+	time_t time = 1999;
+
+	WHEN("Static")
+	  {
+	    std::size_t size = (std::size_t)max_age<config::static_, action::size>(nullptr, &time, max_digits, itoa);
+
+	    GIVEN_A_BUFFER(size)
+	    {
+	      THEN("Prepare")
+		{
+		  end = max_age<config::static_, action::prepare>(begin, &time, max_digits, itoa);
+
+		  REQUIRE(end - begin == size);
+		  REQUIRE(std::string(begin, end) == "; Max-Age=1999");
+		}
+	    }
+	  }
+
+	WHEN("Dynamic")
+	  {
+	    std::size_t size = (std::size_t)max_age<config::dynamic, action::size>(nullptr, &time, max_digits, itoa);
+
+	    GIVEN_A_BUFFER(size)
+	    {
+	      THEN("Prepare")
+		{
+		  end = max_age<config::dynamic, action::prepare>(begin, &time, max_digits, itoa);
+
+		  REQUIRE(end - begin == size);
+		  REQUIRE(std::string(begin, end) == "; Max-Age=    ");
+
+		  THEN("Write")
+		    {
+		      time = 20;
+		      end = max_age<config::dynamic, action::write>(begin, &time, max_digits, itoa);
+
+		      REQUIRE(end - begin == size);
+		      REQUIRE(std::string(begin, end) == "; Max-Age=20; ");
+
+		      THEN("Reset")
+			{
+			  time = 100;
+			  end = max_age<config::dynamic, action::reset>(begin, &time, max_digits, itoa);
+
+			  REQUIRE(end - begin == size);
+			  REQUIRE(std::string(begin, end) == "; Max-Age=100;");
+			}
+		    }
+		}
+	    }
+	  }
+      }
+  }
 }
 
 SCENARIO("Access-Control-Allow-Credentials", "[access-control-allow-credentials]")

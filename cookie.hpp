@@ -25,6 +25,9 @@ namespace buffer_handle_http_header
     template<config Config, action Action, class Itoa>
     char * max_age(char * buffer, time_t * max_age, uint8_t & max_digits, const Itoa & itoa = Itoa());
 
+    template<action Action, class Itoa>
+    char * max_age(char * buffer, time_t max_age, const Itoa & itoa = Itoa());
+
     template<config Config, action Action>
     char * domain(char * buffer, const char * value, std::size_t length, std::size_t max_length);
 
@@ -72,8 +75,6 @@ namespace buffer_handle_http_header
     template<class Next, config Config, class Itoa>
     struct max_age_t : Next
     {
-      time_t * max_age;
-
       template<action Action>
       char * handle(char * buffer);
     };
@@ -107,7 +108,7 @@ namespace buffer_handle_http_header
     };
   };
 
-  template<class Next, config NameConfig, config ValueConfig, bool IsQuoted, bool IsNameExternal = false, bool IsValueExternal = false>
+  template<class Next, config NameConfig, config ValueConfig, bool IsQuoted = false, bool IsNameExternal = false, bool IsValueExternal = false>
   struct cookie_t :
     cookie::name_t<NameConfig, IsNameExternal>,
     cookie::value_t<ValueConfig, IsQuoted, IsValueExternal>,

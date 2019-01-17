@@ -331,6 +331,9 @@ namespace cookie
     template<config Config, action Action, class Itoa>
     char * max_age(char * buffer, time_t * max_age, uint8_t & max_digits, const Itoa & itoa = Itoa());
 
+    template<action Action, class Itoa>
+    char * max_age(char * buffer, time_t max_age, const Itoa & itoa = Itoa());
+
     template<config Config, action Action>
     char * domain(char * buffer, const char * value, std::size_t length, std::size_t max_length);
 
@@ -387,7 +390,7 @@ namespace cookie
   template<class Next, config Config, class Itoa>
   struct max_age_t : Next
   {
-    time_t * max_age;
+    time_t * max_age;//Not a pointer if Config == config::static_
 
     template<action Action>
     char * handle(char * buffer);
@@ -426,7 +429,7 @@ namespace cookie
 * The `Next` template parameter is used to combine functors.
 * The attributes name and type of `name_t`, `value_t`, `domain_t` and `path_t` functors depend on the `Config` and the `IsExternal` parameters such that:
 
-`̀ `cpp
+```cpp
 template<config Config, bool IsExternal>
 struct T
 {
