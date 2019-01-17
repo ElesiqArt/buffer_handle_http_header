@@ -1,6 +1,6 @@
 # Handle HTTP header buffer
 
-This **C++ 11** header-only library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common HTTP headers.
+This **C++ 11** header-only library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common response HTTP headers.
 
 * [Background](#background)
 * [Reference](#reference)
@@ -10,21 +10,21 @@ This **C++ 11** header-only library under [MIT license](LICENSE) and based on th
 
 The library depends on [buffer handle v1.3](https://github.com/gscano/buffer_handle/releases/tag/v1.3). Please refer to the [documentation](https://github.com/gscano/buffer_handle/blob/v1.3/README.md) for concepts and examples.
 
-This library adds a layer on top of buffer handle functions and functors in order to handle HTTP header fields.
-This wrapper could be used to handle new HTTP headers and is defined in `buffer_handle_http_header/common.hpp`.
-
 Normative documents used:
-* [RFC 2616](https://tools.ietf.org/html/rfc2616)
-* [RFC 6265](https://tools.ietf.org/html/rfc6265)
-* [RFC 6585](https://tools.ietf.org/html/rfc6585)
-* [RFC 7231](https://tools.ietf.org/html/rfc7231)
-* [RFC 7932](https://tools.ietf.org/html/rfc7932)
-* [W3C CORS](https://www.w3.org/TR/cors/)
+* [RFC 2616](https://tools.ietf.org/html/rfc2616) Hypertext Transfer Protocol -- HTTP/1.1
+* [RFC 6265](https://tools.ietf.org/html/rfc6265) HTTP State Management Mechanism
+* [RFC 6585](https://tools.ietf.org/html/rfc6585) Additional HTTP Status Codes
+* [RFC 7231](https://tools.ietf.org/html/rfc7231) Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content
+* [RFC 7232](https://tools.ietf.org/html/rfc7232) Hypertext Transfer Protocol (HTTP/1.1): Conditional Requests
+* [W3C CORS](https://www.w3.org/TR/cors/) Cross-Origin Resource Sharing
 
 ## Reference
 
 All code is scoped in `namespace buffer_handle_http_header`.
 
+A layer on top of buffer handle functions and functors is provided in order to handle HTTP header fields in the last (section)[common].
+
+### Types
 
 The [four types](https://github.com/gscano/buffer_handle/blob/v1.1/README.md#types) defined by buffer handle are directly imported to avoid scoping:
 ```cpp
@@ -37,6 +37,7 @@ typedef buffer_handle::config config;
 ```
 
 ###### CRLF
+
 ```cpp
 //Defined in buffer_handle_http_header/common.hpp
 
@@ -308,67 +309,145 @@ struct location_t
 #### Set-Cookie ([RFC 6265 §4.1](https://tools.ietf.org/html/rfc6265.html#section-4.1))
 
 ```cpp
-//Declared in buffer_handle_http_header/cookie.hpp
+//Defined in buffer_handle_http_header/cookie.hpp
 
-template<config Name, config Value, config Expires, config MaxAge,
-	 config Domain, config Path, config IsSecure, config HttpOnly>
-struct cookie_config
+namespace cookie
 {
-  static const config name;
-  static const config value;
-  static const config expires;
-  static const config max_age;
-  static const config domain;
-  static const config path;
-  static const config is_secure;
-  static const config http_only;
+    template<config Config, action Action>
+    char * name(char * buffer, const char * name, std::size_t name_length, std::size_t max_name_length);
+
+    template<config Config, action Action>
+    char * name(char * buffer, char ** name, std::size_t name_length, std::size_t max_name_length);
+
+    template<config Config, bool IsQuoted, action Action>
+    char * value(char * buffer, const char * value, std::size_t length, std::size_t max_length);
+
+    template<config Config, bool IsQuoted, action Action>
+    char * value(char * buffer, char ** value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * expires(char * buffer, std::tm * at);
+
+    template<config Config, action Action, class Itoa>
+    char * max_age(char * buffer, time_t * max_age, uint8_t & max_digits, const Itoa & itoa = Itoa());
+
+    template<config Config, action Action>
+    char * domain(char * buffer, const char * value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * domain(char * buffer, char ** value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * path(char * buffer, const char * value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * path(char * buffer, char ** value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * is_secure(char * buffer, bool value);
+
+    template<config Config, action Action>
+    char * http_only(char * buffer, bool value);
 };
-
-enum class cookie_config_select { name, value, expires, max_age, domain, path, is_secure, http_only };
-
-template<typename PreviousConfig, cookie_config_select Change, config Config>
-struct set_cookie_config;
-
-struct static_cookie_config;
-struct dynamic_cookie_config;
 ```
 
-The `set_cookie_config` structure can be used to set the configuration of a given field.
+* The `name` function will take care of the header field and the equal in addition to the name of the cookie.
+* For functions with a `const char *` argument, passing a `nullptr` for a **write** is equivalent to a **reset**.
+* For functions with a `char **` argument, the content will be left aligned except for `name` for which it will be right aligned.
+* For functions taking either `const char *` or `char **`, there is an overload with `std::nullptr_t` to resolve a `nullptr` parameter.
 
 ```cpp
-template<typename Config, bool IsValueQuoted>
-struct cookie_t
+//Defined in buffer_handle_http_header/cookie.hpp
+
+namespace cookie
 {
-  cost char * name;
-  std::size_t name_length;
-  std::size_t max_name_length;
+  template<config Config, bool IsExternal = false>
+  struct name_t
+  {
+    template<action Action>
+    char * handle(char * buffer);
+  };
 
-  const char * value;
-  std::size_t value_length;
-  std::size_t max_value_length;
+  template<config Config, bool IsQuoted = false, bool IsExternal = false>
+  struct value_t
+  {
+    template<action Action>
+    char * handle(char * buffer);
+  };
 
-  std::tm expires;
+  template<class Next, config Config>
+  struct expires_t : Next
+  {
+    std::tm * expires;
 
-  time_t max_age;
+    template<action Action>
+    char * handle(char * buffer);
+  };
 
-  const char * domain;
-  std::size_t domain_length;
-  std::size_t max_domain_length;
+  template<class Next, config Config, class Itoa>
+  struct max_age_t : Next
+  {
+    time_t * max_age;
 
-  const char * path;
-  std::size_t path_length;
-  std::size_t max_path_length;
+    template<action Action>
+    char * handle(char * buffer);
+  };
 
-  uint8_t has_expires;
-  uint8_t has_max_age;
-  uint8_t is_secure;
-  uint8_t http_only;
+  template<class Next, config Config, bool IsExternal = false>
+  struct domain_t : Next
+  {
+    template<action Action>
+    char * handle(char * buffer);
+  };
 
-  template<action Action, class Itoa>
-  char * handle(char * buffer, const Itoa & itoa);
+  template<class Next, config Config, bool IsExternal = false>
+  struct path_t : Next
+  {
+    template<action Action>
+    char * handle(char * buffer);
+  };
+
+  template<class Next, config Config, bool Value = true>
+  struct is_secure_t : Next
+  {
+    template<action Action>
+    char * handle(char * buffer);
+  };
+
+  template<class Next, config Config, bool Value = true>
+  struct http_only_t : Next
+  {
+    template<action Action>
+    char * handle(char * buffer);
+  };
 };
 ```
 
+* The `Next` template parameter is used to combine functors.
+* The attributes name and type of `name_t`, `value_t`, `domain_t` and `path_t` functors depend on the `Config` and the `IsExternal` parameters such that:
+
+`̀ `cpp
+template<config Config, bool IsExternal>
+struct T
+{
+  std::conditional<IsExternal, char *, const char *>::type T;
+  std::size_t T_length;//Except if Config == config::dynamic && IsExternal
+  std::size_t max_T_length;//If Config == config::dynamic
+};
+```
+
+* The `is_secure_t` and `http_only_t` functors have an `bool is_secure` and `bool http_only` attribute respectively when the **dynamic**; otherwise the `Value` parameters is used to set the content.
+
+```cpp
+//Defined in buffer_handle_http_header/cookie.hpp
+
+template<class Next, config NameConfig, config ValueConfig, bool IsQuoted, bool IsNameExternal = false, bool IsValueExternal = false>
+struct cookie_t
+{
+  template<action Action>
+  char * handle(char * buffer);
+};
+```
 
 ### Entity headers ([RFC 2616 §7.1](https://tools.ietf.org/html/rfc2616#section-7.1)]
 

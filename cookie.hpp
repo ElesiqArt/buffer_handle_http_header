@@ -10,8 +10,14 @@ namespace buffer_handle_http_header
     template<config Config, action Action>
     char * name(char * buffer, const char * name, std::size_t name_length, std::size_t max_name_length);
 
+    template<config Config, action Action>
+    char * name(char * buffer, char ** name, std::size_t name_length, std::size_t max_name_length);
+
     template<config Config, bool IsQuoted, action Action>
     char * value(char * buffer, const char * value, std::size_t length, std::size_t max_length);
+
+    template<config Config, bool IsQuoted, action Action>
+    char * value(char * buffer, char ** value, std::size_t length, std::size_t max_length);
 
     template<config Config, action Action>
     char * expires(char * buffer, std::tm * at);
@@ -23,7 +29,13 @@ namespace buffer_handle_http_header
     char * domain(char * buffer, const char * value, std::size_t length, std::size_t max_length);
 
     template<config Config, action Action>
+    char * domain(char * buffer, char ** value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
     char * path(char * buffer, const char * value, std::size_t length, std::size_t max_length);
+
+    template<config Config, action Action>
+    char * path(char * buffer, char ** value, std::size_t length, std::size_t max_length);
 
     template<config Config, action Action>
     char * is_secure(char * buffer, bool value);
@@ -37,13 +49,15 @@ namespace buffer_handle_http_header
     template<config Config, bool IsExternal = false>
     struct name_t
     {
-
+      template<action Action>
+      char * handle(char * buffer);
     };
 
-    template<config Config, bool IsQuoted, bool IsExternal = false>
+    template<config Config, bool IsQuoted = false, bool IsExternal = false>
     struct value_t
     {
-
+      template<action Action>
+      char * handle(char * buffer);
     };
 
     template<class Next, config Config>
@@ -64,14 +78,14 @@ namespace buffer_handle_http_header
       char * handle(char * buffer);
     };
 
-    template<class Next, config Config, bool IsExternal>
+    template<class Next, config Config, bool IsExternal = false>
     struct domain_t : Next
     {
       template<action Action>
       char * handle(char * buffer);
     };
 
-    template<class Next, config Config, bool IsExternal>
+    template<class Next, config Config, bool IsExternal = false>
     struct path_t : Next
     {
       template<action Action>

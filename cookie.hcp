@@ -343,6 +343,112 @@ namespace buffer_handle_http_header
 
   namespace cookie
   {
+    template<>
+    struct name_t<config::static_, false>
+    {
+      const char * name;
+      std::size_t name_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::name<config::static_, Action>(buffer, this->name, this->name_length, this->name_length);
+      }
+    };
+
+    template<>
+    struct name_t<config::static_, true>
+    {
+      char * name;
+      std::size_t name_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::name<config::static_, Action>(buffer, &this->name, this->name_length, this->name_length);
+      }
+    };
+
+    template<>
+    struct name_t<config::dynamic, false>
+    {
+      const char * name;
+      std::size_t name_length;
+      std::size_t max_name_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::name<config::dynamic, Action>(buffer, this->name, this->name_length, this->max_name_length);
+      }
+    };
+
+    template<>
+    struct name_t<config::dynamic, true>
+    {
+      char * name;
+      std::size_t max_name_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::name<config::dynamic, Action>(buffer, &this->name, this->max_name_length, this->max_name_length);
+      }
+    };
+
+    template<bool IsQuoted>
+    struct value_t<config::static_, IsQuoted, false>
+    {
+      const char * value;
+      std::size_t value_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::value<config::static_, IsQuoted, Action>(buffer, this->value, this->value_length, this->value_length);
+      }
+    };
+
+    template<bool IsQuoted>
+    struct value_t<config::static_, IsQuoted, true>
+    {
+      char * value;
+      std::size_t value_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::value<config::static_, IsQuoted, Action>(buffer, &this->value, this->value_length, this->value_length);
+      }
+    };
+
+    template<bool IsQuoted>
+    struct value_t<config::dynamic, IsQuoted, false>
+    {
+      const char * value;
+      std::size_t value_length;
+      std::size_t max_value_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::value<config::dynamic, IsQuoted, Action>(buffer, this->value, this->value_length, this->max_value_length);
+      }
+    };
+
+    template<bool IsQuoted>
+    struct value_t<config::dynamic, IsQuoted, true>
+    {
+      char * value;
+      std::size_t max_value_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	return cookie::value<config::dynamic, IsQuoted, Action>(buffer, &this->value, this->max_value_length, this->max_value_length);
+      }
+    };
+
     template<class Next, config Config>
     template<action Action> inline
     char * expires_t<Next, Config>::handle(char * buffer)
@@ -360,6 +466,38 @@ namespace buffer_handle_http_header
 
       return Next::template handle<Action>(buffer);
     }
+
+    template<class Next>
+    struct domain_t<Next, config::static_, false>
+    {
+      const char * domain;
+      std::size_t domain_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::domain<config::dynamic, Action>
+	  (buffer, this->domain, this->domain_length, this->domain_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next>
+    struct domain_t<Next, config::static_, true>
+    {
+      char * domain;
+      std::size_t domain_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::domain<config::dynamic, Action>
+	  (buffer, &this->domain, this->domain_length, this->domain_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
 
     template<class Next>
     struct domain_t<Next, config::dynamic, false> : Next
@@ -394,17 +532,33 @@ namespace buffer_handle_http_header
       }
     };
 
-    template<class Next, bool IsExternal>
-    struct domain_t<Next, config::static_, IsExternal>
+    template<class Next>
+    struct path_t<Next, config::static_, false>
     {
-      const char * domain;
-      std::size_t domain_length;
+      const char * path;
+      std::size_t path_length;
 
       template<action Action>
       char * handle(char * buffer)
       {
-	buffer = cookie::domain<config::dynamic, Action>
-	  (buffer, this->domain, this->domain_length, this->domain_length);
+	buffer = cookie::path<config::dynamic, Action>
+	  (buffer, this->path, this->path_length, this->path_length);
+
+	return Next::template handle<Action>(buffer);
+      }
+    };
+
+    template<class Next>
+    struct path_t<Next, config::static_, true>
+    {
+      char * path;
+      std::size_t path_length;
+
+      template<action Action>
+      char * handle(char * buffer)
+      {
+	buffer = cookie::path<config::dynamic, Action>
+	  (buffer, &this->path, this->path_length, this->path_length);
 
 	return Next::template handle<Action>(buffer);
       }
@@ -438,22 +592,6 @@ namespace buffer_handle_http_header
       {
 	buffer = cookie::path<config::dynamic, Action>
 	  (buffer, &this->path, this->max_path_length, this->max_path_length);
-
-	return Next::template handle<Action>(buffer);
-      }
-    };
-
-    template<class Next, bool IsExternal>
-    struct path_t<Next, config::static_, IsExternal>
-    {
-      const char * path;
-      std::size_t path_length;
-
-      template<action Action>
-      char * handle(char * buffer)
-      {
-	buffer = cookie::path<config::dynamic, Action>
-	  (buffer, this->path, this->path_length, this->path_length);
 
 	return Next::template handle<Action>(buffer);
       }
@@ -514,99 +652,6 @@ namespace buffer_handle_http_header
 	  }
 
 	return Next::template handle<Action>(buffer);
-      }
-    };
-
-    template<>
-    struct name_t<config::static_, false>
-    {
-      const char * name;
-      std::size_t name_length;
-
-      template<action Action>
-      char * handle(char * buffer)
-      {
-	return cookie::name<config::static_, Action>(buffer, this->name, this->name_length, this->name_length);
-      }
-    };
-
-    template<>
-    struct name_t<config::static_, true>
-    {
-      char * name;
-      std::size_t name_length;
-
-      template<action Action>
-      char * handle(char * buffer)
-      {
-	return cookie::name<config::static_, Action>(buffer, &this->name, this->name_length, this->name_length);
-      }
-    };
-
-    template<>
-    struct name_t<config::dynamic, false>
-    {
-      const char * name;
-      std::size_t name_length;
-      std::size_t max_name_length;
-
-      template<action Action>
-      char * handle(char * buffer)
-      {
-	return cookie::name<config::dynamic, Action>(buffer, this->name, this->name_length, this->max_name_length);
-      }
-    };
-
-    template<>
-    struct name_t<config::dynamic, true>
-    {
-      char * name;
-      std::size_t max_name_length;
-
-      template<action Action>
-      char * handle(char * buffer)
-      {
-	return cookie::name<config::dynamic, Action>(buffer, &this->name, this->max_name_length, this->max_name_length);
-      }
-    };
-
-    template<bool IsQuoted, bool IsExternal>
-    struct value_t<config::static_, IsQuoted, IsExternal>
-    {
-      const char * value;
-      std::size_t value_length;
-
-      template<action Action>
-      char * handle(char * buffer)
-      {
-	return cookie::value<config::static_, IsQuoted, Action>(buffer, this->value, this->value_length, this->value_length);
-      }
-    };
-
-    template<bool IsQuoted>
-    struct value_t<config::dynamic, IsQuoted, false>
-    {
-      const char * value;
-      std::size_t value_length;
-      std::size_t max_value_length;
-
-      template<action Action>
-      char * handle(char * buffer)
-      {
-	return cookie::value<config::dynamic, IsQuoted, Action>(buffer, this->value, this->value_length, this->max_value_length);
-      }
-    };
-
-    template<bool IsQuoted>
-    struct value_t<config::dynamic, IsQuoted, true>
-    {
-      char * value;
-      std::size_t max_value_length;
-
-      template<action Action>
-      char * handle(char * buffer)
-      {
-	return cookie::value<config::dynamic, IsQuoted, Action>(buffer, &this->value, this->max_value_length, this->max_value_length);
       }
     };
   };
