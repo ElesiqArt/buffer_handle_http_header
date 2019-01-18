@@ -496,21 +496,21 @@ namespace buffer_handle_http_header
     }
 
     template<class Next, class Itoa>
-    struct max_age_t<Next, config::static_, Itoa>
+    struct max_age_t<Next, config::static_, Itoa> : Next
     {
       time_t max_age;
 
       template<action Action>
       char * handle(char * buffer)
       {
-	buffer = max_age(buffer, &this->max_age, Itoa());
+	buffer = ::buffer_handle_http_header::cookie::max_age<Action, Itoa>(buffer, this->max_age, Itoa());
 
 	return Next::template handle<Action>(buffer);
       }
     };
 
     template<class Next, class Itoa>
-    struct max_age_t<Next, config::dynamic, Itoa>
+    struct max_age_t<Next, config::dynamic, Itoa> : Next
     {
       time_t * max_age;
       uint8_t max_max_age_digits;
@@ -523,7 +523,7 @@ namespace buffer_handle_http_header
     };
 
     template<class Next>
-    struct domain_t<Next, config::static_, false>
+    struct domain_t<Next, config::static_, false> : Next
     {
       const char * domain;
       std::size_t domain_length;
@@ -539,7 +539,7 @@ namespace buffer_handle_http_header
     };
 
     template<class Next>
-    struct domain_t<Next, config::static_, true>
+    struct domain_t<Next, config::static_, true> : Next
     {
       char * domain;
       std::size_t domain_length;
@@ -588,7 +588,7 @@ namespace buffer_handle_http_header
     };
 
     template<class Next>
-    struct path_t<Next, config::static_, false>
+    struct path_t<Next, config::static_, false> : Next
     {
       const char * path;
       std::size_t path_length;
@@ -604,7 +604,7 @@ namespace buffer_handle_http_header
     };
 
     template<class Next>
-    struct path_t<Next, config::static_, true>
+    struct path_t<Next, config::static_, true> : Next
     {
       char * path;
       std::size_t path_length;
@@ -667,7 +667,7 @@ namespace buffer_handle_http_header
     };
 
     template<class Next, bool Value>
-    struct is_secure_t<Next, config::static_, Value>
+    struct is_secure_t<Next, config::static_, Value> : Next
     {
       template<action Action>
       char * handle(char * buffer)
@@ -696,7 +696,7 @@ namespace buffer_handle_http_header
     };
 
     template<class Next, bool Value>
-    struct http_only_t<Next, config::static_, Value>
+    struct http_only_t<Next, config::static_, Value> : Next
     {
       template<action Action>
       char * handle(char * buffer)

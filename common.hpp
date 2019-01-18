@@ -19,11 +19,8 @@ namespace buffer_handle_http_header
   template<action Action>
   char * field_(char * buffer, const char * value);
 
-  template<action Action>
-  char * attribute(char * buffer, const char * value);
-
   template<config Config, typename I, typename MaxDigits = uint8_t, bool IsLong = false>
-  struct integral_number_field_t : public buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits, IsLong>
+  struct integral_number_field_t : buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits, IsLong>
   {
     template<action Action, class Itoa>
     char * handle(char * buffer, const char * field, I value, const Itoa & itoa = Itoa());

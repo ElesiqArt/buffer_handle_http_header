@@ -1,16 +1,16 @@
 # Handle HTTP header buffer
 
-This **C++ 11** header-only library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common response HTTP headers.
+This **C++ 11** header-only library under [MIT license](LICENSE) and based on the [buffer handle](https://github.com/gscano/buffer_handle) library, eases the management of common HTTP response headers.
 
-* [Background](#background)
 * [Reference](#reference)
 * [Tests](#tests)
 
-## Background
+#### Dependencies
 
-The library depends on [buffer handle v1.3](https://github.com/gscano/buffer_handle/releases/tag/v1.3). Please refer to the [documentation](https://github.com/gscano/buffer_handle/blob/v1.3/README.md) for concepts and examples.
+* [buffer handle](https://github.com/gscano/buffer_handle/blob/v1.4/README.md) [v1.4](https://github.com/gscano/buffer_handle/releases/tag/v1.4)
 
-Normative documents used:
+#### Normative documents used
+
 * [RFC 2616](https://tools.ietf.org/html/rfc2616) Hypertext Transfer Protocol -- HTTP/1.1
 * [RFC 6265](https://tools.ietf.org/html/rfc6265) HTTP State Management Mechanism
 * [RFC 6585](https://tools.ietf.org/html/rfc6585) Additional HTTP Status Codes
@@ -22,11 +22,11 @@ Normative documents used:
 
 All code is scoped in `namespace buffer_handle_http_header`.
 
-A layer on top of buffer handle functions and functors is provided in order to handle HTTP header fields in the last (section)[common].
+A [layer](common) on top of buffer handle functions and functors is provided in order to handle HTTP header fields.
 
 ### Types
 
-The [four types](https://github.com/gscano/buffer_handle/blob/v1.1/README.md#types) defined by buffer handle are directly imported to avoid scoping:
+The four types defined by [buffer handle](https://github.com/gscano/buffer_handle/blob/v1.4/README.md#types) are directly imported to avoid scoping:
 ```cpp
 //Declared in buffer_handle_http_header/type.hpp
 
@@ -34,15 +34,6 @@ typedef buffer_handle::action action;
 typedef buffer_handle::align align;
 typedef buffer_handle::case_ case_;
 typedef buffer_handle::config config;
-```
-
-###### CRLF
-
-```cpp
-//Defined in buffer_handle_http_header/common.hpp
-
-template<config Config, action Action>
-char * crlf(char * buffer);
 ```
 
 ### Status line ([RFC 2616 §6.1](https://tools.ietf.org/html/rfc2616#section-6.1))
@@ -452,7 +443,7 @@ struct cookie_t
 };
 ```
 
-### Entity headers ([RFC 2616 §7.1](https://tools.ietf.org/html/rfc2616#section-7.1)]
+### Entity headers ([RFC 2616 §7.1](https://tools.ietf.org/html/rfc2616#section-7.1))
 
 #### Allow ([RFC 2616 §14.7](https://tools.ietf.org/html/rfc2616#section-14.7))
 
@@ -562,14 +553,14 @@ char * last_modified(char * buffer, std::tm value);
 
 ### Cross Origin Resource Sharing ([W3C](http://www.w3.org/TR/2014/REC-cors-20140116/))
 
-#### Access-Control-Allow-Credentials ([W3C](https://www.w3.org/TR/cors/#access-control-allow-credentials-response-header))
+#### Access-Control-Allow-Credentials ([W3C-CORS](https://www.w3.org/TR/cors/#access-control-allow-credentials-response-header))
 
 ```cpp
 template<config Config, action Action>
 char * access_control_allow_credentials(char * buffer, bool value);
 ```
 
-#### Access-Control-Allow-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-allow-headers-response-header))
+#### Access-Control-Allow-Headers ([W3C-CORS](https://www.w3.org/TR/cors/#access-control-allow-headers-response-header))
 
 ```cpp
 template<config Config, bool IsLong = false>
@@ -580,7 +571,7 @@ struct access_control_allow_headers_t
 };
 ```
 
-#### Access-Control-Allow-Methods ([W3C](https://www.w3.org/TR/cors/#access-control-allow-methods-response-header))
+#### Access-Control-Allow-Methods ([W3C-CORS](https://www.w3.org/TR/cors/#access-control-allow-methods-response-header))
 
 ```cpp
 template<config Config, class Method, bool IsLong = false>
@@ -591,7 +582,7 @@ struct access_control_allow_methods_t
 };
 ```
 
-#### Access-Control-Allow-Origin ([W3C](https://www.w3.org/TR/cors/#access-control-allow-origin-response-header))
+#### Access-Control-Allow-Origin ([W3C-CORS](https://www.w3.org/TR/cors/#access-control-allow-origin-response-header))
 
 ```cpp
 template<config Config, bool IsLong = false>
@@ -602,7 +593,7 @@ struct access_control_allow_origin_t
 };
 ```
 
-#### Access-Control-Expose-Headers ([W3C](https://www.w3.org/TR/cors/#access-control-expose-headers-response-header))
+#### Access-Control-Expose-Headers ([W3C-CORS](https://www.w3.org/TR/cors/#access-control-expose-headers-response-header))
 
 ```cpp
 template<config Config, bool IsLong = false>
@@ -613,7 +604,7 @@ struct access_control_expose_headers_t
 };
 ```
 
-#### Access-Control-Max-Age ([W3C](https://www.w3.org/TR/cors/#access-control-max-age-response-header))
+#### Access-Control-Max-Age ([W3C-CORS](https://www.w3.org/TR/cors/#access-control-max-age-response-header))
 
 ```cpp
 //Defined in buffer_handle_http_header/access_control_max_age.hpp
@@ -627,6 +618,35 @@ struct access_control_max_age_t
 ```
 
 ### Common
+
+###### CRLF
+
+```cpp
+//Defined in buffer_handle_http_header/common.hpp
+
+template<config Config, action Action>
+char * crlf(char * buffer);
+```
+
+###### field_
+
+These methods will write the name of the header field followed by the mandatory colon and space.
+
+```cpp
+//Defined in buffer_handle_http_header/common.hpp
+
+template<action Action>
+char * field_(char * buffer, const char * value, std::size_t length);
+
+template<action Action>
+char * field_(char * buffer, const char * value);
+```
+
+###### Common fields
+
+###### Set iterator
+
+### External functors
 
 #### Content coding
 
@@ -689,7 +709,7 @@ Run `make test` to compile and `make run-test` to execute, or simply `make`.
 
 ### Dependencies
 
-* [Buffer handle v1.1](https://github.com/gscano/buffer_handle/releases/tag/v1.3)
+* [Buffer handle v1.4](https://github.com/gscano/buffer_handle/releases/tag/v1.4)
 * [Catch2](https://github.com/catchorg/Catch2) (tested with version [2.3.0](https://github.com/catchorg/Catch2/releases/tag/v2.3.0))
 
 To change the path of these dependencies, create a `config.mk` file and then assign the `BUFFER_HANDLE` and `CATCH` variables with the appropriate locations (`.` is used by default).
