@@ -5,8 +5,8 @@
 #include <buffer_handle/test.hpp>
 
 #include <buffer_handle_http_header/type.hpp>
-
 #include <buffer_handle_http_header/common.hpp>
+
 #include <buffer_handle_http_header/status_code.hpp>
 #include <buffer_handle_http_header/status_line.hpp>
 #include <buffer_handle_http_header/version.hpp>
@@ -76,7 +76,7 @@ SCENARIO("Status code", "[status_code]")
 
   WHEN("Dynamic")
     {
-      std::size_t size = (std::size_t)reason_phrase<config::dynamic, rfc2616_t, action::size>(nullptr, rfc2616_t::any);
+      std::size_t size = (std::size_t)reason_phrase<config::dynamic, rfc2616_t, action::size>(nullptr, any::value);
 
       GIVEN("Size")
 	{

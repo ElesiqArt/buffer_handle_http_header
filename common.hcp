@@ -112,13 +112,9 @@ namespace buffer_handle_http_header
   {
     buffer = field_<Action>(buffer, field);
 
-#if 1
     if(ListSetMaxLength
        && Config == config::dynamic
        && (Action == action::size || Action == action::prepare))
-#else
-      if(Config == config::static_)
-#endif
       {
 	std::size_t dummy_max_length;
 	this->set_max_length((std::size_t)buffer_handle::container

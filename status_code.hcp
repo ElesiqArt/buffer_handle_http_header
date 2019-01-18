@@ -83,7 +83,14 @@ namespace buffer_handle_http_header
   template<config Config, class Code, action Action, class Itoa> inline
   char * status_code_(char * buffer, status_code_t value, const Itoa & itoa /* = Itoa() */)
   {
-    uint8_t max_digits = 3;
+    uint8_t max_digits = buffer_handle::details::digits(Code::max);
+
+    if(Config == config::dynamic
+       && (Action == action::prepare
+	   || Action == action::size))
+      {
+	value = Code::max;
+      }
 
     return buffer_handle::integral_number<Config, align::left, ' ', Action, Itoa, status_code_t, uint8_t>(buffer, value, max_digits, itoa);
   }

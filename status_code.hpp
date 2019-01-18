@@ -13,7 +13,7 @@ namespace buffer_handle_http_header
   {
     struct any
     {
-      static constexpr status_code_t value = 999;
+      static constexpr status_code_t value = 0;
     };
 
 #define BUFFER_HANDLE_HTTP_HEADER_INSTALL_STATUS_CODE(name_arg, value_arg, reason_arg) \
@@ -103,7 +103,7 @@ namespace buffer_handle_http_header
 
     struct rfc2616_t
     {
-      static const status_code_t any = 999;
+      static const status_code_t max = 999;
 
       static const std::size_t max_reason_length = std::strlen(client_error::requested_range_not_satisfiable::reason);
 
@@ -112,7 +112,8 @@ namespace buffer_handle_http_header
 
     struct rfc6585_t
     {
-      static const status_code_t any = 999;
+      static const status_code_t max = 999;
+
       static const std::size_t max_reason_length = std::strlen(server_error::network_authentication_required::reason);
 
       static const char * reason(status_code_t code);

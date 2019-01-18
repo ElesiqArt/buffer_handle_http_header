@@ -5,11 +5,11 @@ This **C++ 11** header-only library under [MIT license](LICENSE) and based on th
 * [Reference](#reference)
 * [Tests](#tests)
 
-#### Dependencies
+###### Dependencies
 
-* [buffer handle](https://github.com/gscano/buffer_handle/blob/v1.4/README.md) [v1.4](https://github.com/gscano/buffer_handle/releases/tag/v1.4)
+The library _**depends**_ on [buffer handle](https://github.com/gscano/buffer_handle) [v1.4](https://github.com/gscano/buffer_handle/releases/tag/v1.4). Please refer to the [documentation](https://github.com/gscano/buffer_handle/blob/v1.4/README.md) for concepts and examples.
 
-#### Normative documents used
+###### Normative documents
 
 * [RFC 2616](https://tools.ietf.org/html/rfc2616) Hypertext Transfer Protocol -- HTTP/1.1
 * [RFC 6265](https://tools.ietf.org/html/rfc6265) HTTP State Management Mechanism
@@ -82,7 +82,7 @@ typedef uint16_t status_code_t;
 
 namespace status_code
 {
-  #define BUFFER_HANDLE_HTTP_INSTALL_STATUS_CODE(NAME, VALUE, REASON)
+  #define BUFFER_HANDLE_HTTP_HEADER_INSTALL_STATUS_CODE(NAME, VALUE, REASON)
   //To define
   struct NAME
   {
@@ -95,7 +95,7 @@ namespace status_code
 ```cpp
 //Defined in buffer_handle_http_header/status_code.hpp
 
-template<config Config, class Code, action Action, class Itoa>
+template<config Config, action Action, class Itoa>
 char * status_code_(char * buffer, status_code_t value, const Itoa & itoa = Itoa());
 
 template<config Config, class Code, action Action>
@@ -219,10 +219,12 @@ namespace status_code
     static const status_code_t any;
     static const std::size_t max_reason_length;
 
-    static const char * reason(status_code_t code);//Defaults to rfc2616_t::reason(code)
+    static const char * reason(status_code_t code);
   };
 };
 ```
+
+* `reason()` defaults to `rfc2616_t::reason()` for non rfc6585 status codes.
 
 ### General headers ([RFC 2616 §4.5](https://tools.ietf.org/html/rfc2616#section-4.5))
 
@@ -430,18 +432,21 @@ struct T
 };
 ```
 
-* The `is_secure_t` and `http_only_t` functors have an `bool is_secure` and `bool http_only` attribute respectively when the **dynamic**; otherwise the `Value` parameters is used to set the content.
+* The `is_secure_t` and `http_only_t` functors have a `bool is_secure` and `bool http_only` attribute respectively when **dynamic**; otherwise the `Value` parameters is used to set the content.
 
 ```cpp
 //Defined in buffer_handle_http_header/cookie.hpp
 
-template<class Next, config NameConfig, config ValueConfig, bool IsQuoted, bool IsNameExternal = false, bool IsValueExternal = false>
+template<class Next, config NameConfig, config ValueConfig, bool IsQuoted,
+	 bool IsNameExternal = false, bool IsValueExternal = false>
 struct cookie_t
 {
   template<action Action>
   char * handle(char * buffer);
 };
 ```
+
+* This class aggregates `name_t` and `value_t` to `Next`.
 
 ### Entity headers ([RFC 2616 §7.1](https://tools.ietf.org/html/rfc2616#section-7.1))
 
@@ -628,7 +633,7 @@ template<config Config, action Action>
 char * crlf(char * buffer);
 ```
 
-###### field_
+###### Field name
 
 These methods will write the name of the header field followed by the mandatory colon and space.
 
@@ -642,7 +647,48 @@ template<action Action>
 char * field_(char * buffer, const char * value);
 ```
 
-###### Common fields
+###### Fields
+
+```cpp
+template<config Config, typename I, typename MaxDigits = uint8_t, bool IsLong = false>
+struct integral_number_field_t :
+       buffer_handle::integral_number_t<Config, align::right, ' ', I, MaxDigits, IsLong>
+{
+  template<action Action, class Itoa>
+  char * handle(char * buffer, const char * field, I value, const Itoa & itoa = Itoa());
+};
+
+template<config Config, bool IsLong = false>
+struct string_field_t : buffer_handle::string_t<Config, align::right, ' ', IsLong>
+{
+  template<action Action>
+  char * handle(char * buffer, const char * field, const char * value, std::size_t length);
+};
+
+template<config Config, action Action,
+	 typename Weekday, typename Day, typename Month, typename Year,
+	 typename Hours, typename Minutes, typename Seconds>
+char * date(char * buffer, const char * field,
+	    Weekday weekday, Day day, Month month, Year year,
+	    Hours hours, Minutes minutes, Seconds seconds);
+
+template<config Config, action Action>
+char * date(char * buffer, const char * field, std::tm value);
+
+template<config Config, bool ListSetMaxLength, bool IsLong = false>
+struct container_field_t : buffer_handle::container_t<Config, align::right, ' ', IsLong>
+{
+  void set_max_length(std::size_t length);
+
+  template<class Iterator, class Element, class Separator>
+  void set_max_length(const Iterator & begin, const Iterator & end,
+		      Element & element, Separator & separator);
+
+  template<action Action, class Iterator, class Element, class Separator>
+  char * handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end,
+		Element & element, Separator & separator);
+};
+```
 
 ###### Set iterator
 
