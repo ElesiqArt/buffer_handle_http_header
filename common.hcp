@@ -57,8 +57,8 @@ namespace buffer_handle_http_header
   }
 
   template<config Config, action Action,
-	     typename Weekday, typename Day, typename Month, typename Year,
-	     typename Hours, typename Minutes, typename Seconds> inline
+	   typename Weekday, typename Day, typename Month, typename Year,
+	   typename Hours, typename Minutes, typename Seconds> inline
   char * date(char * buffer, const char * field,
 	      Weekday weekday, Day day, Month month, Year year,
 	      Hours hours, Minutes minutes, Seconds seconds)
@@ -168,9 +168,9 @@ namespace buffer_handle_http_header
 
   template<typename EnumSet> inline
   bool set_iterator_t<EnumSet>::operator != (const self_type it) const
-    {
-      return ! this->operator == (it);
-    }
+  {
+    return ! this->operator == (it);
+  }
 
   template<typename EnumSet> inline
   EnumSet set_iterator_t<EnumSet>::operator * () const
@@ -206,7 +206,7 @@ namespace buffer_handle_http_header
        handler_type(), separator_type());
   }
 
-  //For library local purpose only
+  //For library local purposes only
   template<action Action>
   char * attribute(char * buffer, const char * value)
   {

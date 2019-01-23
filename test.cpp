@@ -720,6 +720,38 @@ SCENARIO("Cookie", "[cookie]")
 		}
 	    }
 	  }
+
+	WHEN("Dynamic")
+	  {
+	    std::size_t size = (std::size_t)name<config::dynamic, action::size>(nullptr, nullptr, 8, 8);
+
+	    GIVEN_A_BUFFER(size)
+	    {
+	      THEN("Prepare")
+		{
+		  end = name<config::dynamic, action::prepare>(begin, nullptr, 0, 8);
+
+		  REQUIRE(end - begin == size);
+		  REQUIRE(std::string(begin, end) == "Set-Cookie:         =");
+
+		  THEN("Write")
+		    {
+		      end = name<config::dynamic, action::write>(begin, "name", 4, 8);
+
+		      REQUIRE(end - begin == size);
+		      REQUIRE(std::string(begin, end) == "Set-Cookie:     name=");
+
+		      THEN("Reset")
+			{
+			  end = name<config::dynamic, action::reset>(begin, nullptr, 0, 8);
+
+			  REQUIRE(end - begin == size);
+			  REQUIRE(std::string(begin, end) == "Set-Cookie:         =");
+			}
+		    }
+		}
+	    }
+	  }
       }
 
     WHEN("Value")

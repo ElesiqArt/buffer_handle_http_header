@@ -3,6 +3,7 @@
 
 #include <buffer_handle_http_header/type.hpp> // action align config
 
+#include <buffer_handle/bitset.hpp> // bitset_t
 #include <buffer_handle/container.hpp> // container_t
 #include <buffer_handle/date.hpp> // rfc1123::date
 #include <buffer_handle/number.hpp> // integral_number_t

@@ -7,7 +7,7 @@ This **C++ 11** header-only library under [MIT license](LICENSE) and based on th
 
 ###### Dependencies
 
-The library _**depends**_ on [buffer handle](https://github.com/gscano/buffer_handle) [v1.4](https://github.com/gscano/buffer_handle/releases/tag/v1.4). Please refer to the [documentation](https://github.com/gscano/buffer_handle/blob/v1.4/README.md) for concepts and examples.
+The library _**depends**_ on [buffer handle](https://github.com/gscano/buffer_handle) [1.5](https://github.com/gscano/buffer_handle/releases/tag/v1.5). Please refer to the [documentation](https://github.com/gscano/buffer_handle/blob/v1.5/README.md) for concepts and examples.
 
 ###### Normative documents
 
@@ -26,7 +26,7 @@ A [layer](common) on top of buffer handle functions and functors is provided in 
 
 ### Types
 
-The four types defined by [buffer handle](https://github.com/gscano/buffer_handle/blob/v1.4/README.md#types) are directly imported to avoid scoping:
+The four types defined by [buffer handle](https://github.com/gscano/buffer_handle/blob/v1.5/README.md#types) are directly imported to avoid scoping.
 ```cpp
 //Declared in buffer_handle_http_header/type.hpp
 
@@ -53,7 +53,8 @@ template<config Config, class Code, typename Number, class Itoa>
 struct status_line_t
 {
   template<action Action>
-  char * handle(char * buffer, Number major, Number minor, status_code_t value, const Itoa & itoa = Itoa());
+  char * handle(char * buffer, Number major, Number minor, status_code_t value,
+		const Itoa & itoa = Itoa());
 };
 ```
 
@@ -63,7 +64,8 @@ struct status_line_t
 //Defined in buffer_handle_http_header/version.hpp
 
 template<config Config, action Action, typename Number, class Itoa>
-char * version(char * buffer, Number major, Number minor, std::size_t & max_length, const Itoa & itoa = Itoa());
+char * version(char * buffer, Number major, Number minor, std::size_t & max_length,
+	       const Itoa & itoa = Itoa());
 
 template<config Config, typename Number>
 struct version_t
@@ -182,7 +184,6 @@ namespace status_code
   {
     static const status_code_t any;
     static const std::size_t max_reason_length;
-
     static const char * reason(status_code_t code);
   };
 };
@@ -218,13 +219,12 @@ namespace status_code
   {
     static const status_code_t any;
     static const std::size_t max_reason_length;
-
     static const char * reason(status_code_t code);
   };
 };
 ```
 
-* `reason()` defaults to `rfc2616_t::reason()` for non rfc6585 status codes.
+* `reason()` defaults to `rfc2616_t::reason()` for non RFC6585 status codes.
 
 ### General headers ([RFC 2616 §4.5](https://tools.ietf.org/html/rfc2616#section-4.5))
 
@@ -347,9 +347,9 @@ namespace cookie
 };
 ```
 
-* The `name` function will take care of the header field and the equal in addition to the name of the cookie.
+* The `name` function will take care of the header field, the name of the cookie and the equal.
 * For functions with a `const char *` argument, passing a `nullptr` for a **write** is equivalent to a **reset**.
-* For functions with a `char **` argument, the content will be left aligned except for `name` for which it will be right aligned.
+* For functions with a `char **` argument, the content will be left-aligned except for `name` for which it will be right-aligned.
 * For functions taking either `const char *` or `char **`, there is an overload with `std::nullptr_t` to resolve a `nullptr` parameter.
 
 ```cpp
@@ -446,7 +446,7 @@ struct cookie_t
 };
 ```
 
-* This class aggregates `name_t` and `value_t` to `Next`.
+* This main class aggregates `name_t` and `value_t` to `Next`.
 
 ### Entity headers ([RFC 2616 §7.1](https://tools.ietf.org/html/rfc2616#section-7.1))
 
@@ -755,7 +755,7 @@ Run `make test` to compile and `make run-test` to execute, or simply `make`.
 
 ### Dependencies
 
-* [Buffer handle v1.4](https://github.com/gscano/buffer_handle/releases/tag/v1.4)
-* [Catch2](https://github.com/catchorg/Catch2) (tested with version [2.3.0](https://github.com/catchorg/Catch2/releases/tag/v2.3.0))
+* [Buffer handle v1.5](https://github.com/gscano/buffer_handle/releases/tag/v1.5)
+* [Catch2](https://github.com/catchorg/Catch2) (tested with version [2.5.0](https://github.com/catchorg/Catch2/releases/tag/v2.5.0))
 
-To change the path of these dependencies, create a `config.mk` file and then assign the `BUFFER_HANDLE` and `CATCH` variables with the appropriate locations (`.` is used by default).
+To change the paths of these dependencies, create a `config.mk` file and then assign the `BUFFER_HANDLE` and `CATCH` variables with the appropriate locations (`.` is used by default).
