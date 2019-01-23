@@ -4,6 +4,6 @@ namespace buffer_handle_http_header
   template<action Action> inline
   char * access_control_allow_methods_t<Config, Method, IsLong>::handle(char * buffer, typename Method::value_type value)
   {
-    return set_field_t<Config, Method, IsLong>::template handle<Action>(buffer, "Access-Control-Allow-Methods", value);
+    return bitset_field_t<Config, align::left, ' ', Method, IsLong>::template handle<Action>(buffer, "Access-Control-Allow-Methods", value);
   }
 };

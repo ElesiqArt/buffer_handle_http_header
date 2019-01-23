@@ -4,6 +4,6 @@ namespace buffer_handle_http_header
   template<action Action> inline
   char * accept_ranges_t<Config, RangeUnit, IsLong>::handle(char * buffer, typename RangeUnit::value_type value)
   {
-    return set_field_t<Config, RangeUnit, IsLong>::template handle<Action>(buffer, "Accept-Ranges", value);
+    return bitset_field_t<Config, align::left, ' ', RangeUnit, IsLong>::template handle<Action>(buffer, "Accept-Ranges", value);
   }
 };

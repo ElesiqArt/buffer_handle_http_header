@@ -56,44 +56,11 @@ namespace buffer_handle_http_header
     char * handle(char * buffer, const char * field, const Iterator & begin, const Iterator & end, Element & element, Separator & separator);
   };
 
-  template<typename EnumSet>
-  struct set_iterator_t
-  {
-  public:
-    typedef set_iterator_t<EnumSet> self_type;
-
-  public:
-    template<typename T = uint8_t>
-    set_iterator_t(EnumSet value, T max_number_of_elements = 0);// 0 is for the end() iterator
-
-  public:
-    EnumSet value;
-    EnumSet mask;
-
-  public:
-    self_type & operator ++ ();
-    self_type operator ++ (int);
-
-  public:
-    bool operator == (const self_type it) const;
-    bool operator != (const self_type it) const;
-
-  public:
-    EnumSet operator * () const;
-  };
-
-  template<class EnumSetName>
-  struct set_iterator_handler_t
-  {
-    template<config Config, action Action>
-    char * handle(char * buffer, typename EnumSetName::value_type value) const;
-  };
-
-  template<config Config, class EnumSetName, bool IsLong = false>
-  struct set_field_t : container_field_t<Config, true, IsLong>
+  template<config Config, align Align, char Pad, class Bitset, bool IsLong>
+  struct bitset_field_t : buffer_handle::bitset_t<Config, Align, Pad, Bitset, IsLong>
   {
     template<action Action>
-    char * handle(char * buffer, const char * field, typename EnumSetName::value_type value);
+    char * handle(char * buffer, const char * field, typename Bitset::value_type value);
   };
 };
 
